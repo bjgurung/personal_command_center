@@ -1,6 +1,6 @@
 # Personal Command Center
 
-A functional private finance dashboard based on the supplied BRD and visual reference. Built with React, TypeScript, Vinext/Vite, Recharts, accessible Base UI/Shadcn controls, and Cloudflare D1 through Sites.
+A functional private finance dashboard based on the supplied BRD and visual reference. Built with React, TypeScript, Vinext/Vite, Recharts, accessible Base UI/Shadcn controls, Supabase, and Cloudflare Workers.
 
 ## Working features
 
@@ -11,16 +11,17 @@ A functional private finance dashboard based on the supplied BRD and visual refe
 - Needs/wants/savings budget allocation, configurable tax savings estimate, goal contributions, and goal editing.
 - Client records with cash-margin drill-down and proposal pipeline.
 - Deterministic insights and a clearly labeled three-month scenario.
-- Account-scoped cloud persistence with input validation and optimistic concurrency control; JSON backup/restore and CSV exports. Financial archives remain in the backup.
+- Gmail magic-link authentication, mandatory TOTP verification, account-scoped Supabase persistence, Row Level Security, input validation, and optimistic concurrency control.
+- Private receipt bucket policies, append-only database audit events, JSON backup/restore, and CSV exports.
 - Responsive layout and keyboard-accessible forms and navigation.
 
 The initial records are clearly labeled samples. Start an empty workspace from Settings when ready.
 
 ## Intentional limitations relative to the full BRD
 
-This is a working dashboard implementation, not completion of every BRD rollout phase. Sites account access and D1 replace the specified owner-managed Supabase/Postgres deployment. The current database persists each user's validated workspace as a versioned document, rather than the BRD's full normalized schema. It does not implement Supabase TOTP/RLS/Vault, immutable server audit history, independent encrypted backups, receipt OCR, PDF statement parsing, email forwarding/digests, scheduled recurring generation, bank-format mapping profiles, near-duplicate reconciliation, infrastructure monitoring, document vaults, debts/assets, delivery tracking, or later tax intelligence. The tax feature is a configurable reserve percentage, not an IRS liability estimator. PDF export uses browser printing. No banking credentials are requested. CSV files are parsed in memory and only normalized records are saved.
+This version persists each user's validated workspace as a versioned Supabase document. It does not yet implement independent encrypted backups, receipt OCR, PDF statement parsing, email forwarding/digests, scheduled recurring generation, bank-format mapping profiles, near-duplicate reconciliation, infrastructure monitoring, document vaults, debts/assets, delivery tracking, or later tax intelligence. The tax feature is a configurable reserve percentage, not an IRS liability estimator. PDF export uses browser printing. No banking credentials are requested. CSV files are parsed in memory and only normalized records are saved.
 
-Configure the production security and independent backup controls before using sensitive financial records. Private Sites hosting alone is not the BRD's Supabase/TOTP security model.
+Run the Supabase migration and configure an independent backup before using sensitive financial records.
 
 ## Development
 
@@ -34,9 +35,9 @@ npx tsc --noEmit
 node tests/model.test.mjs
 ```
 
-Database definition: `db/schema.ts`. Migrations: `drizzle/`. Runtime logical binding: `DB` in `.openai/hosting.json`. Sites applies the bundled migrations during deployment. To initialize a local database, apply the SQL migration with Wrangler to the same `.wrangler/state` directory used by the preview. Local preview provides the built-in `/signin-with-chatgpt?return_to=%2F` sign-in.
+Supabase migration: `supabase/migrations/202609110001_command_center.sql`. Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` locally and as Cloudflare build variables. The publishable key is safe for browser use; never expose a secret or service-role key.
 
-The API requires the trusted Sites authenticated-user header; never expose the Worker directly outside the Sites identity boundary. It ignores client-supplied user IDs in record payloads and scopes all queries to the server-provided identity. Concurrent stale writes return HTTP 409 and preserve the newer cloud state; export pending changes before refreshing.
+Supabase derives ownership from the signed-in JWT. Row Level Security requires both the matching user ID and an `aal2` MFA session. Concurrent stale writes preserve the newer cloud state; export pending changes before refreshing.
 
 ## Validation
 
