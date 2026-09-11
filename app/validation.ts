@@ -5,6 +5,7 @@ export function validateState(value:unknown):asserts value is State{
  for(const k of ['transactions','invoices','bills','goals','clients','proposals','batches','audit'] as const)if(!Array.isArray(s[k]))throw Error('Invalid workspace records.');
  if(!s.rules||typeof s.rules!=='object'||Array.isArray(s.rules))throw Error('Invalid vendor rules.');
  if(s.expectedIncome!==undefined&&(!Array.isArray(s.expectedIncome)||s.expectedIncome.some(i=>!str(i.id)||!str(i.name)||!cents(i.amount)||!Number.isInteger(i.day)||i.day<1||i.day>31)))throw Error('Invalid income schedules.');
+ for(const r of [...s.bills,...s.goals,...(s.expectedIncome||[])])if(r.scope!==undefined&&!['Personal','Business'].includes(r.scope))throw Error('Invalid record context.');
  for(const b of s.bills){if(b.overrides&&Object.entries(b.overrides).some(([month,o])=>!date(o.date)||!o.date.startsWith(month+'-')||!cents(o.amount)))throw Error('Invalid bill occurrence.');if(b.matched&&Object.values(b.matched).some(v=>!str(v)))throw Error('Invalid bill match.');}
  if(s.insightPreferences!==undefined&&(typeof s.insightPreferences!=='object'||Object.values(s.insightPreferences).some(v=>typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))))throw Error('Invalid insight preferences.');
  if(s.importProfile!==undefined&&(!s.importProfile.map||Object.values(s.importProfile.map).some(v=>!Number.isInteger(v)||v< -1)||!['MDY','DMY'].includes(s.importProfile.order)||typeof s.importProfile.positiveExpense!=='boolean'))throw Error('Invalid import profile.');

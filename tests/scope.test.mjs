@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,readFileSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';import {join} from 'node:path';import {pathToFileURL} from 'node:url';import ts from 'typescript';
+const dir=mkdtempSync(join(tmpdir(),'pcc-scope-'));writeFileSync(join(dir,'package.json'),'{"type":"module"}');
+for(const name of ['model','scope-model'])writeFileSync(join(dir,name+'.js'),ts.transpileModule(readFileSync(new URL('../app/'+name+'.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replace("from './model'","from './model.js'"));
+const {seed}=await import(pathToFileURL(join(dir,'model.js')));const {scopedState,scopedMetrics,transactionScope,mergeScopedState,unassignedCount}=await import(pathToFileURL(join(dir,'scope-model.js')));
+const s=seed();s.transactions=[];s.bills=[];s.goals=[];s.accounts=[{id:'p',name:'Home',balance:100000,date:'2026-09-01',scope:'Personal'},{id:'b',name:'Studio',balance:200000,date:'2026-09-01',scope:'Business'}];
+const tx=(id,account,amount,kind,more={})=>({id,account,amount,kind,vendor:id,date:'2026-09-05',review:false,category:'Other',...more});
+s.transactions=[tx('salary','Home',50000,'W-2'),tx('revenue','Studio',80000,'Consulting'),tx('groceries','Home',10000,'Need'),tx('tools','Studio',20000,'Business'),tx('transfer','Studio',30000,'Transfer',{toAccount:'Home'}),tx('refund','Home',2000,'Refund'),tx('unknown','Unknown',900,'Need')];
+assert.equal(scopedMetrics(s,'Personal','2026-09').cash,172000);assert.equal(scopedMetrics(s,'Business','2026-09').cash,230000);assert.equal(scopedMetrics(s,'All','2026-09').cash,402000);
+assert.equal(scopedMetrics(s,'Personal','2026-09').income,50000);assert.equal(scopedMetrics(s,'Business','2026-09').income,80000);assert.equal(scopedMetrics(s,'All','2026-09').income,130000);
+assert.equal(scopedMetrics(s,'Personal','2026-09').net,42000);assert.equal(transactionScope(s,s.transactions[6]),undefined);assert.equal(unassignedCount(s),1);
+const noAccounts={...s,accounts:[]};assert.equal(scopedMetrics(noAccounts,'Business','2026-09').cash,null);assert.equal(scopedMetrics(s,'Personal','2026-08').cash,null);assert.equal(scopedMetrics(s,'Personal','2026-09','2026-09-02').cash,100000);
+s.bills=[{id:'p',name:'Home bill',amount:1000,day:10,frequency:'Monthly',paid:[],autopay:false,scope:'Personal'},{id:'b',name:'Studio bill',amount:2000,day:12,frequency:'Monthly',paid:[],autopay:false,scope:'Business'}];s.goals=[{id:'g',name:'Personal saving',target:50000,saved:1000,scope:'Personal'}];
+const view=scopedState(s,'Business');assert.equal(view.bills.length,1);assert.equal(view.goals.length,0);const updated=mergeScopedState(s,view,{...view,bills:[{...view.bills[0],amount:3000}]});assert.equal(updated.bills.find(x=>x.id==='p').amount,1000);assert.equal(updated.bills.find(x=>x.id==='b').amount,3000);assert.equal(updated.transactions.length,s.transactions.length);assert.equal(updated.goals.length,1);
+const deleted=mergeScopedState(s,view,{...view,bills:[]});assert.deepEqual(deleted.bills.map(x=>x.id),['p']);assert.equal(scopedState(s,'Personal').invoices.length,0);assert.equal(scopedState(s,'Business').invoices.length,s.invoices.length);
+assert.equal(transactionScope(s,{...s.transactions[0],scope:'Business'}),'Business');
+console.log('Passed scope totals, transfer neutrality and account movement, refunds, unknown ownership, missing/future balances, scoped records and safe merge of filtered edits.');

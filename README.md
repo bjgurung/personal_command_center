@@ -29,3 +29,10 @@ The revised BRD (`docs/command-center-brd-v4.html`) preserves original requireme
 Use Node 22.13+ and npm. Copy `.env.example` to `.env.local` and configure the public Supabase URL and publishable key. Never use a secret/service-role key in browser code. The initial SQL migration was applied September 11, 2026. Cloudflare build variables mirror these values; main-branch pushes trigger deployment.
 
 Storage ownership comes from Supabase JWT and RLS requires AAL2. Local pending snapshots are scoped to the signed-in user and cleared after successful saves. A conflict pauses saving; export/review recovery before reloading.
+
+
+## Unified financial views and navigation (BRD v5)
+
+Home now defaults to All with Personal and Business filters on the same layout. Desktop navigation has visible icon labels; mobile More includes descriptions. Scope and period are preserved in URL drill-downs. See `docs/command-center-brd-v5.html` for current behavior, migration guidance and the changed spending-based runway definition.
+
+Run `node tests/scope.test.mjs` alongside the existing model/capture tests. Scope edits from filtered views merge into full state. Unassigned records remain in All until reviewed; missing scoped balances are not represented as zero.
