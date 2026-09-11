@@ -1834,5 +1834,11 @@ body {
 </div>
 
 </div>
+<section style="padding:24px;margin:24px;border:1px solid #b5c9b8;border-radius:12px">
+<h2>Mobile dashboard update — September 11, 2026</h2>
+<p>Implemented against the supplied mobile reference. Below 851px the workspace uses the full screen width and a fixed bottom navigation: Home, Transactions, Income, Invoices, More. More opens Business, Calendar, Budget, Insights, Settings and Sign out. Income opens the income-filtered ledger.</p>
+<ul><li>Home order: cash and trend, three compact summary cards, visible priorities, money movement and income mix, upcoming bills, goals.</li><li>Mobile money movement uses labeled bars. The desktop flow chart remains available on larger screens.</li><li>At widths up to 440px, the cash chart and lower charts stack for legibility. Wider mobile screens use the reference's side-by-side layout. Navigation includes safe-area padding.</li><li>Personal and Business buttons link the existing overview and business records page. Transactions supports All, Personal and Business filters, using explicit scope or the existing classification fallback.</li><li>The Personal overview remains a combined cash overview; independent business/personal cash balances, bills, goals and forecast calculations are not introduced by this visual update.</li><li>Mobile dialogs, buttons and forms have larger touch targets. Wide ledger tables retain local horizontal scrolling for all editable columns.</li><li>Google OAuth button from the preceding change remains included; Google provider configuration is managed in Supabase.</li></ul>
+<p>Validation: TypeScript and existing financial/capture tests pass. Mock-data browser checks passed at 390px, 430px, 768px and 1440px: navigation, Income filter, Business access, Quick Capture dialog, and page overflow; empty-state baseline also passed. Real Supabase sign-in and receipt uploads were not exercised by these layout tests. No paid service added.</p>
+</section>
 </body>
 </html>
