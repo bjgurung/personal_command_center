@@ -21,7 +21,7 @@ The initial records are clearly labeled samples. Start an empty workspace from S
 
 This version persists each user's validated workspace as a versioned Supabase document. It does not yet implement independent encrypted backups, receipt OCR, PDF statement parsing, email forwarding/digests, scheduled recurring generation, bank-format mapping profiles, near-duplicate reconciliation, infrastructure monitoring, document vaults, debts/assets, delivery tracking, or later tax intelligence. The tax feature is a configurable reserve percentage, not an IRS liability estimator. PDF export uses browser printing. No banking credentials are requested. CSV files are parsed in memory and only normalized records are saved.
 
-Run the Supabase migration and configure an independent backup before using sensitive financial records.
+The initial Supabase migration was applied on September 11, 2026. Configure an independent backup before using sensitive financial records.
 
 ## Development
 
@@ -35,7 +35,7 @@ npx tsc --noEmit
 node tests/model.test.mjs
 ```
 
-Supabase migration: `supabase/migrations/202609110001_command_center.sql`. Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` locally and as Cloudflare build variables. The publishable key is safe for browser use; never expose a secret or service-role key.
+Supabase migration: `supabase/migrations/202609110001_command_center.sql`. The production deployment is available at `https://personal-command-center.bjungtamu.workers.dev`, with continuous deployment from the GitHub `main` branch. Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` locally and as Cloudflare build variables. The publishable key is safe for browser use; never expose a secret or service-role key.
 
 Supabase derives ownership from the signed-in JWT. Row Level Security requires both the matching user ID and an `aal2` MFA session. Concurrent stale writes preserve the newer cloud state; export pending changes before refreshing.
 
