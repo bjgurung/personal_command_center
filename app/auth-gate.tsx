@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { Leaf, LockKeyhole, LogOut, Mail, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-const ALLOWED_EMAIL = 'kinahyesto@gmail.com';
+const ALLOWED_EMAIL = 'bjungtamu@gmail.com';
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null), [ready, setReady] = useState(false), [aal2, setAal2] = useState(false);
