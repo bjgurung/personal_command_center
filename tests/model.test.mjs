@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {seed,metrics,recordPayment,remaining,invoiceStatus,csvRows,fingerprint} from '../app/model.ts';
+import {validateState} from '../app/validation.ts';
+const s=seed();validateState(s);const m=metrics(s,'2026-09');assert.equal(m.income,1549000);assert.equal(m.net,308000);assert.equal(m.needs,622000);assert.equal(m.business,125000);
+const p=recordPayment(s,s.invoices[0].id,100000,'2026-09-10');assert.equal(remaining(p.invoices[0]),150000);assert.equal(metrics(p,'2026-09').income,m.income+100000);assert.equal(metrics(p,'2026-09').cash,m.cash+100000);assert.equal(invoiceStatus(p.invoices[0],'2026-09-10'),'Overdue');validateState(p);
+const paid=recordPayment(p,p.invoices[0].id,150000,'2026-09-11');assert.equal(invoiceStatus(paid.invoices[0],'2026-09-11'),'Paid');assert.throws(()=>recordPayment(paid,paid.invoices[0].id,1,'2026-09-11'));assert.throws(()=>recordPayment(s,s.invoices[0].id,-1,'2026-09-11'));assert.throws(()=>recordPayment(s,s.invoices[0].id,0.5,'2026-09-11'));
+const transfer={...s,transactions:[...s.transactions,{id:'transfer',date:'2026-09-10',vendor:'Card payment',amount:100000,kind:'Transfer',category:'Other',account:'Checking',review:false}]};assert.equal(metrics(transfer,'2026-09').cash,m.cash);assert.equal(metrics(transfer,'2026-09').net,m.net);
+const archived={...s,transactions:s.transactions.map(t=>t.id==='seed-9-0'?{...t,deletedAt:new Date().toISOString()}:t)};assert.equal(metrics(archived,'2026-09').income,m.income-824000);
+assert.deepEqual(csvRows('Date,Description,Amount\r\n2026-09-01,"Cafe, LLC",-42.50\r\n2026-09-02,"A ""quoted"" store",-5'),[['Date','Description','Amount'],['2026-09-01','Cafe, LLC','-42.50'],['2026-09-02','A "quoted" store','-5']]);assert.throws(()=>csvRows('Date,"unfinished'));
+assert.equal(fingerprint({date:'2026-09-01',vendor:'CAFE LLC',amount:42,account:'Checking'}),fingerprint({date:'2026-09-01',vendor:'Cafe, LLC',amount:42,account:'Checking'}));
+const restored=JSON.parse(JSON.stringify(paid));validateState(restored);assert.deepEqual(metrics(restored,'2026-09'),JSON.parse(JSON.stringify(metrics(paid,'2026-09'))));assert.throws(()=>validateState({...s,transactions:[{amount:-2}]}));assert.throws(()=>validateState({...s,goals:[{id:'g',name:'Bad',saved:0,target:0}]}));
+console.log('Passed: cash flow, partial/full payment cascade, overpayment rejection, transfer exclusion, soft deletion, CSV quoting, duplicate fingerprints, backup round-trip and invalid backup validation.');

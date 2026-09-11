@@ -1,0 +1,40 @@
+export type Transaction={id:string,date:string,vendor:string,amount:number,kind:string,category:string,account:string,review:boolean,client?:string,gross?:number,batch?:string,deletedAt?:string};
+export type Invoice={id:string,client:string,description:string,amount:number,date:string,due:string,status:string,payments:{id:string,amount:number,date:string}[],deletedAt?:string};
+export type Bill={id:string,name:string,amount:number,day:number,autopay:boolean,frequency:string,paid:string[]};
+export type Goal={id:string,name:string,target:number,saved:number};
+export type Client={id:string,name:string,status:string,type:string,value:number,start:string};
+export type State={version:1,transactions:Transaction[],invoices:Invoice[],bills:Bill[],goals:Goal[],clients:Client[],proposals:{id:string,name:string,client:string,value:number,status:string,due:string}[],rules:Record<string,{category:string,kind:string}>,batches:{id:string,name:string,date:string,count:number}[],settings:{name:string,openingCash:number,liquidSavings:number,taxRate:number},audit:{date:string,action:string}[]};
+export const money=(c:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:c%100===0?0:2}).format(c/100);
+export const uid=()=>crypto.randomUUID();
+export const categories=['Housing','Groceries','Transportation','Insurance','Utilities','Dining','Entertainment','Shopping','Savings','Tools','Infrastructure','Travel','Other'];
+export function seed():State {
+ const rows:Transaction[]=[];
+ for(let m=4;m<=9;m++) { const date=`2026-${String(m).padStart(2,'0')}`; const f=m===9?1:0.78+m*.022;
+ const data:[string,number,string,string][]=[['Salary · take-home',824000,'W-2','Income'],['Studio North · retainer',400000,'Consulting','Income'],['Atlas Digital · milestone',280000,'Consulting','Income'],['Interest & other income',45000,'Other income','Income'],['Mortgage',245000,'Need','Housing'],['Groceries & essentials',135000,'Need','Groceries'],['Transport & insurance',95000,'Need','Transportation'],['Utilities & home',147000,'Need','Utilities'],['Dining & weekends',84000,'Want','Dining'],['Shopping & entertainment',100000,'Want','Shopping'],['Savings contribution',310000,'Savings','Savings'],['Project tools & infrastructure',125000,'Business','Tools']];
+ data.forEach(([vendor,amount,kind,category],i)=>rows.push({id:`seed-${m}-${i}`,date:date+'-'+String(Math.min(9,i+1)).padStart(2,'0'),vendor,amount:Math.round(amount*f),kind,category,account:kind==='Business'?'Business Card':'Personal Checking',review:m===9&&i>=6,client:kind==='Consulting'?(i===1?'Studio North':'Atlas Digital'):kind==='Business'?'Studio North':undefined,gross:kind==='W-2'?1100000:undefined}));
+ }
+ return {version:1,transactions:rows,invoices:[{id:'INV-2026-021',client:'Studio North',description:'Brand platform · final milestone',amount:250000,date:'2026-08-01',due:'2026-08-31',status:'Sent',payments:[]},{id:'INV-2026-022',client:'Atlas Digital',description:'September advisory retainer',amount:400000,date:'2026-09-01',due:'2026-09-20',status:'Sent',payments:[]},{id:'INV-2026-023',client:'Willow & Co.',description:'Discovery & strategy',amount:200000,date:'2026-09-04',due:'2026-09-28',status:'Sent',payments:[]}],bills:[{id:'b1',name:'Mortgage',amount:245000,day:15,autopay:true,frequency:'Monthly',paid:[]},{id:'b2',name:'Auto insurance',amount:21000,day:18,autopay:true,frequency:'Monthly',paid:[]},{id:'b3',name:'Utilities',amount:18500,day:22,autopay:false,frequency:'Monthly',paid:[]},{id:'b4',name:'Property tax reserve',amount:220000,day:25,autopay:false,frequency:'Monthly',paid:[]},{id:'b5',name:'Car payment',amount:65000,day:27,autopay:true,frequency:'Monthly',paid:[]},{id:'b6',name:'Home insurance',amount:114500,day:30,autopay:true,frequency:'Monthly',paid:[]}],goals:[{id:'g1',name:'Emergency fund',target:5000000,saved:3900000},{id:'g2',name:'Tax reserve',target:387500,saved:325500}],clients:[{id:'c1',name:'Studio North',status:'Active',type:'Retainer',value:4800000,start:'2026-04-01'},{id:'c2',name:'Atlas Digital',status:'Active',type:'Milestone',value:2400000,start:'2026-06-01'},{id:'c3',name:'Willow & Co.',status:'Prospect',type:'Fixed fee',value:1200000,start:'2026-09-01'}],proposals:[{id:'p1',name:'Commerce redesign',client:'Willow & Co.',value:1200000,status:'Sent',due:'2026-09-16'}],rules:{},batches:[],settings:{name:'Jamie',openingCash:2127520,liquidSavings:7923000,taxRate:25},audit:[]};
+}
+export const incomeKinds=['W-2','Consulting','Other income'];
+export const active=(s:State)=>s.transactions.filter(t=>!t.deletedAt);
+export const remaining=(i:Invoice)=>Math.max(0,i.amount-i.payments.reduce((n,p)=>n+p.amount,0));
+export const invoiceStatus=(i:Invoice,today:string)=>remaining(i)===0?'Paid':i.status==='Draft'?'Draft':i.due<today?'Overdue':'Sent';
+export function metrics(s:State,month:string){
+ const tx=active(s).filter(t=>t.date.startsWith(month));
+ const sum=(k:string[])=>tx.filter(t=>k.includes(t.kind)).reduce((n,t)=>n+t.amount,0);
+ const income=sum(incomeKinds),needs=sum(['Need']),wants=sum(['Want']),savings=sum(['Savings']),business=sum(['Business']);
+ const net=income-needs-wants-savings-business;
+ const all=active(s).filter(t=>t.date.slice(0,7)<=month);
+ const cash=s.settings.openingCash+all.reduce((n,t)=>n+(incomeKinds.includes(t.kind)?t.amount:['Transfer'].includes(t.kind)?0:-t.amount),0);
+ const fixed=s.bills.reduce((n,b)=>n+b.amount/(b.frequency==='Annual'?12:1),0);
+ const [year,m]=month.split('-').map(Number); const past=Array.from({length:3},(_,i)=>{const d=new Date(year,m-2-i,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`});
+ const variable=active(s).filter(t=>past.includes(t.date.slice(0,7))&&['Need','Want'].includes(t.kind)&&!['Housing','Utilities','Insurance'].includes(t.category)).reduce((n,t)=>n+t.amount,0)/3;
+ const burn=fixed+variable;
+ return {tx,income,needs,wants,savings,business,net,cash,burn,runway:burn?s.settings.liquidSavings/burn:0};
+}
+export function recordPayment(s:State,id:string,amount:number,date:string):State {
+ const invoice=s.invoices.find(i=>i.id===id);if(!invoice||amount<=0||!Number.isSafeInteger(amount)||amount>remaining(invoice))throw Error('Enter a payment greater than zero and no more than the balance.');
+ const payment={id:uid(),amount,date};return {...s,invoices:s.invoices.map(i=>i.id===id?{...i,status:'Sent',payments:[...i.payments,payment]}:i),transactions:[...s.transactions,{id:payment.id,date,vendor:invoice.client,client:invoice.client,amount,kind:'Consulting',category:'Income',account:'Business Checking',review:false}]};
+}
+export function csvRows(text:string):string[][] {const rows:string[][]=[];let row:string[]=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell=''}else cell+=c}if(quoted)throw Error('Unclosed quote in CSV.');row.push(cell);if(row.some(v=>v.trim()))rows.push(row);return rows}
+export const fingerprint=(t:Pick<Transaction,'date'|'vendor'|'amount'|'account'>)=>[t.date,t.vendor.toLowerCase().replace(/[^a-z0-9]/g,''),t.amount,t.account].join('|');

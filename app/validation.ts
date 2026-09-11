@@ -1,0 +1,15 @@
+import type {State} from './model';
+export function validateState(value:unknown):asserts value is State{
+ const s=value as State;const cents=(n:unknown)=>typeof n==='number'&&Number.isSafeInteger(n)&&n>=0;const str=(v:unknown)=>typeof v==='string'&&v.length<=500;const date=(v:unknown)=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(Date.parse(v));
+ if(!s||s.version!==1||!s.settings||!str(s.settings.name)||!Number.isSafeInteger(s.settings.openingCash)||!cents(s.settings.liquidSavings)||!Number.isFinite(s.settings.taxRate)||s.settings.taxRate<0||s.settings.taxRate>60)throw Error('Invalid workspace preferences.');
+ for(const k of ['transactions','invoices','bills','goals','clients','proposals','batches','audit'] as const)if(!Array.isArray(s[k]))throw Error('Invalid workspace records.');
+ if(!s.rules||typeof s.rules!=='object'||Array.isArray(s.rules))throw Error('Invalid vendor rules.');
+ for(const t of s.transactions)if(!str(t.id)||!date(t.date)||!str(t.vendor)||!str(t.account)||!str(t.category)||!['W-2','Consulting','Other income','Need','Want','Business','Savings','Transfer'].includes(t.kind)||!cents(t.amount)||typeof t.review!=='boolean'||t.gross!==undefined&&!cents(t.gross))throw Error('Invalid transaction record.');
+ for(const i of s.invoices)if(!str(i.id)||!str(i.client)||!str(i.description)||!date(i.date)||!date(i.due)||!['Draft','Sent'].includes(i.status)||!cents(i.amount)||!Array.isArray(i.payments)||i.payments.some(p=>!str(p.id)||!date(p.date)||!cents(p.amount))||i.payments.reduce((n,p)=>n+p.amount,0)>i.amount)throw Error('Invalid invoice record.');
+ for(const b of s.bills)if(!str(b.id)||!str(b.name)||!cents(b.amount)||!Number.isInteger(b.day)||b.day<1||b.day>31||!['Monthly','Annual'].includes(b.frequency)||!Array.isArray(b.paid))throw Error('Invalid bill record.');
+ for(const g of s.goals)if(!str(g.id)||!str(g.name)||!cents(g.target)||g.target===0||!cents(g.saved))throw Error('Invalid goal record.');
+ for(const c of s.clients)if(!str(c.id)||!str(c.name)||!str(c.status)||!str(c.type)||!date(c.start)||!cents(c.value))throw Error('Invalid client record.');
+ for(const p of s.proposals)if(!str(p.id)||!str(p.name)||!str(p.client)||!cents(p.value)||!date(p.due)||!['Draft','Sent','Won','Lost'].includes(p.status))throw Error('Invalid proposal record.');
+ for(const b of s.batches)if(!str(b.id)||!str(b.name)||typeof b.date!=='string'||!Number.isInteger(b.count))throw Error('Invalid import history.');
+ for(const a of s.audit)if(typeof a.action!=='string'||typeof a.date!=='string')throw Error('Invalid activity history.');
+}
