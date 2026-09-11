@@ -1,44 +1,31 @@
 # Personal Command Center
 
-A functional private finance dashboard based on the supplied BRD and visual reference. Built with React, TypeScript, Vinext/Vite, Recharts, accessible Base UI/Shadcn controls, Supabase, and Cloudflare Workers.
+Private financial dashboard hosted on Cloudflare Workers with Supabase authentication, MFA, account-scoped persistence and private receipt storage.
 
-## Working features
+Production: https://personal-command-center.bjungtamu.workers.dev
+GitHub: https://github.com/bjgurung/personal_command_center
 
-- Financial overview with selectable reporting month, cash history, income allocation, priorities, obligations, receivables, runway, and savings goals.
-- Personal/business/income ledger, gross and net W-2 entry, vendor rules, review queue, CSV preview, exact duplicate detection, transfer exclusion, and batch rollback.
-- Fixed-value service invoices, draft editing/archival, sent/overdue/paid lifecycle, partial payments that create consulting income, and print-to-PDF invoice output.
-- Monthly recurring bills, due calendar, and paid-bill expense creation.
-- Needs/wants/savings budget allocation, configurable tax savings estimate, goal contributions, and goal editing.
-- Client records with cash-margin drill-down and proposal pipeline.
-- Deterministic insights and a clearly labeled three-month scenario.
-- Gmail magic-link authentication, mandatory TOTP verification, account-scoped Supabase persistence, Row Level Security, input validation, and optimistic concurrency control.
-- Private receipt bucket policies, append-only database audit events, JSON backup/restore, and CSV exports.
-- Responsive layout and keyboard-accessible forms and navigation.
+## Free capture and insights release
 
-The initial records are clearly labeled samples. Start an empty workspace from Settings when ready.
+- Reviewed text entry for common expense/income phrases and bill/invoice drafts.
+- CSV column mapping, debit/credit and date formats, saved statement-header profiles, bad-row review and duplicate warnings.
+- Browser Tesseract image OCR and PDF.js text-PDF extraction. Maximum receipt size 10 MB; PDF limit 10 pages. Scanned PDFs require an image upload. OCR drafts require review; no accuracy guarantee.
+- Private receipt uploads and signed viewing links. JSON backups contain references only: download receipt files separately.
+- Account balance checks, transfer/card-payment records, refund handling and personal/business labels.
+- Monthly bill skip/restore, template editing and explicit existing-payment matching.
+- Past/present/future report, source records, 30/60/90-day projections, invoice delay, cash buffer, variable spending, additional income and one-time purchase scenarios.
+- Goal estimates, printable report, insight snooze/dismiss, backup restore preview, recoverable local pending snapshots and pause after save errors.
+- New accounts start empty; existing data is retained.
 
-## Intentional limitations relative to the full BRD
+## Validation and limits
 
-This version persists each user's validated workspace as a versioned Supabase document. It does not yet implement independent encrypted backups, receipt OCR, PDF statement parsing, email forwarding/digests, scheduled recurring generation, bank-format mapping profiles, near-duplicate reconciliation, infrastructure monitoring, document vaults, debts/assets, delivery tracking, or later tax intelligence. The tax feature is a configurable reserve percentage, not an IRS liability estimator. PDF export uses browser printing. No banking credentials are requested. CSV files are parsed in memory and only normalized records are saved.
+Run `npx tsc --noEmit`, `node tests/model.test.mjs`, `node tests/capture.test.mjs`, and `npm run build`.
+Authenticated browser and cross-device tests remain pending owner sign-in. OCR quality and live receipt storage are not claimed verified. Configured accounts drive usable cash; legacy opening cash applies only without accounts. Unconfigured account labels are flagged as incomplete data. No paid service or subscription is enabled. Free-tier quotas still apply.
 
-The initial Supabase migration was applied on September 11, 2026. Configure an independent backup before using sensitive financial records.
+The revised BRD (`docs/command-center-brd-v4.html`) preserves original requirements and documents partial/planned features explicitly. Original v3 is retained in `docs/command-center-brd-v3.html`.
 
-## Development
+## Setup
 
-Requires Node 22.13+ and npm.
+Use Node 22.13+ and npm. Copy `.env.example` to `.env.local` and configure the public Supabase URL and publishable key. Never use a secret/service-role key in browser code. The initial SQL migration was applied September 11, 2026. Cloudflare build variables mirror these values; main-branch pushes trigger deployment.
 
-```sh
-npm install
-npm run dev
-npm run build
-npx tsc --noEmit
-node tests/model.test.mjs
-```
-
-Supabase migration: `supabase/migrations/202609110001_command_center.sql`. The production deployment is available at `https://personal-command-center.bjungtamu.workers.dev`, with continuous deployment from the GitHub `main` branch. Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` locally and as Cloudflare build variables. The publishable key is safe for browser use; never expose a secret or service-role key.
-
-Supabase derives ownership from the signed-in JWT. Row Level Security requires both the matching user ID and an `aal2` MFA session. Concurrent stale writes preserve the newer cloud state; export pending changes before refreshing.
-
-## Validation
-
-TypeScript and the production build are checked. Model tests cover financial totals, partial/full payment recognition, overpayment rejection, transfer exclusion, soft deletion, quoted CSV parsing, duplicate fingerprints, backup round-trip, and invalid backup rejection. Local HTTP tests exercised authentication rejection, spoofed identity rejection, persistence/read-back, stale-write conflicts, and invalid-state rejection. Browser UI testing was not requested. Optional WebMCP scorecard-read and expense-prefill tools are feature-detected; no supported WebMCP validation context was available, so these are not claimed as verified.
+Storage ownership comes from Supabase JWT and RLS requires AAL2. Local pending snapshots are scoped to the signed-in user and cleared after successful saves. A conflict pauses saving; export/review recovery before reloading.

@@ -1,9 +1,9 @@
-export type Transaction={id:string,date:string,vendor:string,amount:number,kind:string,category:string,account:string,review:boolean,client?:string,gross?:number,batch?:string,deletedAt?:string};
+export type Transaction={id:string,date:string,vendor:string,amount:number,kind:string,category:string,account:string,review:boolean,scope?:'Personal'|'Business',toAccount?:string,receipt?:{path:string,name:string,size:number},client?:string,gross?:number,batch?:string,deletedAt?:string};
 export type Invoice={id:string,client:string,description:string,amount:number,date:string,due:string,status:string,payments:{id:string,amount:number,date:string}[],deletedAt?:string};
-export type Bill={id:string,name:string,amount:number,day:number,autopay:boolean,frequency:string,paid:string[]};
+export type Bill={id:string,name:string,amount:number,day:number,autopay:boolean,frequency:string,paid:string[],skipped?:string[],overrides?:Record<string,{date:string,amount:number}>,matched?:Record<string,string>};
 export type Goal={id:string,name:string,target:number,saved:number};
 export type Client={id:string,name:string,status:string,type:string,value:number,start:string};
-export type State={version:1,transactions:Transaction[],invoices:Invoice[],bills:Bill[],goals:Goal[],clients:Client[],proposals:{id:string,name:string,client:string,value:number,status:string,due:string}[],rules:Record<string,{category:string,kind:string}>,batches:{id:string,name:string,date:string,count:number}[],settings:{name:string,openingCash:number,liquidSavings:number,taxRate:number},audit:{date:string,action:string}[]};
+export type State={version:1,expectedIncome?:{id:string,name:string,amount:number,day:number}[],importProfiles?:Record<string,{map:{date:number,vendor:number,amount:number,debit:number,credit:number},order:string,positiveExpense:boolean}>,importProfile?:{map:{date:number,vendor:number,amount:number,debit:number,credit:number},order:string,positiveExpense:boolean},insightPreferences?:Record<string,string>,accounts?:{id:string,name:string,balance:number,date:string,scope:string}[],transactions:Transaction[],invoices:Invoice[],bills:Bill[],goals:Goal[],clients:Client[],proposals:{id:string,name:string,client:string,value:number,status:string,due:string}[],rules:Record<string,{category:string,kind:string}>,batches:{id:string,name:string,date:string,count:number}[],settings:{name:string,openingCash:number,liquidSavings:number,taxRate:number},audit:{date:string,action:string}[]};
 export const money=(c:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:c%100===0?0:2}).format(c/100);
 export const uid=()=>crypto.randomUUID();
 export const categories=['Housing','Groceries','Transportation','Insurance','Utilities','Dining','Entertainment','Shopping','Savings','Tools','Infrastructure','Travel','Other'];
@@ -19,13 +19,16 @@ export const incomeKinds=['W-2','Consulting','Other income'];
 export const active=(s:State)=>s.transactions.filter(t=>!t.deletedAt);
 export const remaining=(i:Invoice)=>Math.max(0,i.amount-i.payments.reduce((n,p)=>n+p.amount,0));
 export const invoiceStatus=(i:Invoice,today:string)=>remaining(i)===0?'Paid':i.status==='Draft'?'Draft':i.due<today?'Overdue':'Sent';
+export function billOccurrence(b:Bill,month:string){return b.overrides?.[month]||{date:month+'-'+String(Math.min(b.day,new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0).getDate())).padStart(2,'0'),amount:b.amount}}
+export function accountCash(s:State,asOf:string){return (s.accounts||[]).reduce((total,a)=>total+a.balance+active(s).filter(t=>t.date>=a.date&&t.date<=asOf).reduce((n,t)=>n+(t.kind==='Transfer'?(t.account===a.name?-t.amount:0)+(t.toAccount===a.name?t.amount:0):t.account===a.name?(incomeKinds.includes(t.kind)||t.kind==='Refund'?t.amount:-t.amount):0),0),0)}
 export function metrics(s:State,month:string){
  const tx=active(s).filter(t=>t.date.startsWith(month));
  const sum=(k:string[])=>tx.filter(t=>k.includes(t.kind)).reduce((n,t)=>n+t.amount,0);
- const income=sum(incomeKinds),needs=sum(['Need']),wants=sum(['Want']),savings=sum(['Savings']),business=sum(['Business']);
+ const income=sum(incomeKinds),needs=sum(['Need'])-sum(['Refund']),wants=sum(['Want']),savings=sum(['Savings']),business=sum(['Business']);
  const net=income-needs-wants-savings-business;
  const all=active(s).filter(t=>t.date.slice(0,7)<=month);
- const cash=s.settings.openingCash+all.reduce((n,t)=>n+(incomeKinds.includes(t.kind)?t.amount:['Transfer'].includes(t.kind)?0:-t.amount),0);
+ const legacyCash=s.settings.openingCash+all.reduce((n,t)=>n+(incomeKinds.includes(t.kind)||t.kind==='Refund'?t.amount:['Transfer'].includes(t.kind)?0:-t.amount),0);
+ const cash=s.accounts?.length?accountCash(s,month+'-31'):legacyCash;
  const fixed=s.bills.reduce((n,b)=>n+b.amount/(b.frequency==='Annual'?12:1),0);
  const [year,m]=month.split('-').map(Number); const past=Array.from({length:3},(_,i)=>{const d=new Date(year,m-2-i,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`});
  const variable=active(s).filter(t=>past.includes(t.date.slice(0,7))&&['Need','Want'].includes(t.kind)&&!['Housing','Utilities','Insurance'].includes(t.category)).reduce((n,t)=>n+t.amount,0)/3;

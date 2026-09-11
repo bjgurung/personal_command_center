@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRD v4 — Personal Command Center — BRD v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1117;
+  --surface: #161b22;
+  --surface-raised: #1c2230;
+  --border: #2a3040;
+  --border-accent: #3a4560;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-dim: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-amber: #d29922;
+  --accent-red: #f85149;
+  --accent-purple: #bc8cff;
+  --accent-cyan: #39d2c0;
+  --accent-teal: #2dd4bf;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+/* Header */
+.doc-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2.5rem;
+  margin-bottom: 3rem;
+}
+.doc-header .tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-cyan);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+.doc-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+.doc-header .subtitle {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  font-weight: 300;
+}
+.doc-meta {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* TOC */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 3rem;
+}
+.toc-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+.toc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 2rem;
+}
+.toc a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  padding: 0.2rem 0;
+  display: block;
+  transition: color 0.15s;
+}
+.toc a:hover { color: var(--accent-blue); }
+.toc a span {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-right: 0.5rem;
+}
+
+/* Sections */
+.section { margin-bottom: 3.5rem; }
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-amber);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+.section h2 {
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.6rem;
+  color: var(--accent-blue);
+}
+.section h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.4rem;
+  color: var(--text);
+}
+.section p { margin-bottom: 0.75rem; color: var(--text-muted); max-width: 75ch; }
+
+/* Module grid */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.module-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+.module-card:hover { border-color: var(--border-accent); }
+.module-card .card-icon { font-size: 1.3rem; margin-bottom: 0.5rem; }
+.module-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+.module-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.55; }
+.module-card ul { list-style: none; margin-top: 0.5rem; }
+.module-card ul li {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 0.15rem 0 0.15rem 1rem;
+  position: relative;
+}
+.module-card ul li::before { content: '›'; position: absolute; left: 0; color: var(--text-dim); }
+
+/* Requirement tables */
+.req-table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; }
+.req-table th {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.req-table td {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+.req-table td:first-child {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent-blue);
+  white-space: nowrap;
+  width: 100px;
+}
+.req-table tr:hover td { background: var(--surface); }
+.priority-high { color: var(--accent-red); font-family: var(--font-mono); font-size: 0.78rem; }
+.priority-med { color: var(--accent-amber); font-family: var(--font-mono); font-size: 0.78rem; }
+.priority-low { color: var(--accent-green); font-family: var(--font-mono); font-size: 0.78rem; }
+
+/* Architecture diagram */
+.arch-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+.arch-container svg { display: block; margin: 0 auto; }
+
+/* Phase timeline */
+.phase-timeline { margin: 1.5rem 0; }
+.phase {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.phase::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 36px;
+  bottom: -18px;
+  width: 1px;
+  background: var(--border);
+}
+.phase:last-child::before { display: none; }
+.phase-marker {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 2px solid;
+}
+.phase-marker.p1 { border-color: var(--accent-green); color: var(--accent-green); }
+.phase-marker.p2 { border-color: var(--accent-blue); color: var(--accent-blue); }
+.phase-marker.p3 { border-color: var(--accent-amber); color: var(--accent-amber); }
+.phase-marker.p4 { border-color: var(--accent-purple); color: var(--accent-purple); }
+.phase-marker.p5 { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.phase-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+.phase-content .phase-duration {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
+}
+.phase-content ul { list-style: none; font-size: 0.85rem; color: var(--text-muted); }
+.phase-content ul li { padding: 0.15rem 0 0.15rem 1rem; position: relative; }
+.phase-content ul li::before { content: '—'; position: absolute; left: 0; color: var(--text-dim); }
+
+/* Cost table */
+.cost-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.cost-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
+.cost-card .cost-label { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+.cost-card .cost-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; }
+.cost-card .cost-note { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem; }
+.cost-green .cost-value { color: var(--accent-green); }
+.cost-amber .cost-value { color: var(--accent-amber); }
+.cost-blue .cost-value { color: var(--accent-blue); }
+
+/* Callout */
+.callout {
+  background: var(--surface-raised);
+  border-left: 3px solid var(--accent-amber);
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+.callout strong { color: var(--text); }
+.callout.callout-green { border-left-color: var(--accent-green); }
+.callout.callout-blue { border-left-color: var(--accent-blue); }
+.callout.callout-red { border-left-color: var(--accent-red); }
+.callout.callout-purple { border-left-color: var(--accent-purple); }
+.callout.callout-cyan { border-left-color: var(--accent-cyan); }
+
+/* Rec cards */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.rec-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  border-top: 3px solid var(--accent-green);
+}
+.rec-card.rec-warn { border-top-color: var(--accent-amber); }
+.rec-card.rec-info { border-top-color: var(--accent-blue); }
+.rec-card.rec-alt { border-top-color: var(--accent-purple); }
+.rec-card h4 { font-size: 0.92rem; font-weight: 600; margin-bottom: 0.35rem; }
+.rec-card p { font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; }
+
+/* Verdict banner */
+.verdict {
+  background: linear-gradient(135deg, rgba(63,185,80,0.08), rgba(88,166,255,0.08));
+  border: 1px solid var(--accent-green);
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  margin: 1.5rem 0;
+}
+.verdict h3 { color: var(--accent-green); margin-bottom: 0.5rem; font-size: 1rem; }
+.verdict p { color: var(--text-muted); font-size: 0.92rem; }
+
+/* Schema block */
+.schema-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  overflow-x: auto;
+  margin: 1rem 0;
+  white-space: pre;
+}
+.schema-block .kw { color: var(--accent-purple); }
+.schema-block .type { color: var(--accent-cyan); }
+.schema-block .col { color: var(--text); }
+.schema-block .comment { color: var(--text-dim); font-style: italic; }
+
+/* Comparison strip */
+.compare-strip {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-size: 0.85rem;
+}
+.compare-strip .cs-header {
+  background: var(--surface);
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+.compare-strip .cs-row {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.compare-strip .cs-row:last-child { border-bottom: none; }
+.compare-strip .cs-row.highlight { background: rgba(63,185,80,0.06); }
+
+@media (max-width: 700px) {
+  .container { padding: 1.5rem 1rem 3rem; }
+  .doc-header h1 { font-size: 1.6rem; }
+  .module-grid, .cost-grid, .rec-grid { grid-template-columns: 1fr; }
+  .doc-meta { flex-direction: column; gap: 0.5rem; }
+  .toc-grid { grid-template-columns: 1fr; }
+  .compare-strip { font-size: 0.78rem; }
+}
+</style>
+</head>
+<body><section style="padding:28px;margin:24px;border:2px solid #82a78c;background:#143328;color:#fff"><h1>BRD v4 — Free-only implementation record</h1><p>Updated September 11, 2026. Original v3 requirements are preserved below with implementation annotations. This document distinguishes requirements from verified delivery.</p><h2>Current implementation</h2><p>Cloudflare Worker, GitHub deployment, Supabase account-scoped workspace document, MFA, reviewed text/CSV capture, browser image OCR, text-PDF extraction, monthly bill controls, guided setup, account checks and consolidated cash, transfers, refund handling, cash reports, scenarios, goals, exports and restore preview.</p><h2>Verification boundary</h2><p>TypeScript, production build and model/capture tests are run for this release. Authenticated browser sign-in, MFA, cross-device persistence, receipt OCR/upload/read and restore UI tests require the owner's active session and are not claimed verified. Original claims of guaranteed OCR/categorization accuracy or unlimited free services do not apply.</p><h2>Free-only constraints</h2><p>No paid AI, SMS, bank aggregation or email delivery was added. OCR executes locally but may download public runtime/language assets. Accepted records and receipts go to Supabase. Free-tier limits are provider-controlled; no paid upgrade is authorized.</p><p>Verified provider documentation: <a href="https://supabase.com/pricing">Supabase pricing</a> (500 MB database, 1 GB file storage); <a href="https://developers.cloudflare.com/workers/platform/limits/">Cloudflare limits</a> (100,000 Worker requests/day on Free). Account-wide usage and plan status are not monitored by the app.</p><h2>Data and accounting limitations</h2><p>Configured account balances now drive aggregate usable cash. Legacy opening usable cash is used only when no accounts are configured. Transactions with unconfigured account labels are excluded from account-based cash and reported as incomplete data. Transfer rows require both accounts for account-level balances. Credit-card purchases affect usable cash as committed spending; payments are transfers. Refunds reduce net spending without increasing income. No accrual or tax-liability claims. Backups contain receipt references, not receipt binaries. Downloads must be retained separately.</p><h2>Deferred work</h2><p>Annual/weekly recurrence, automatic payment matching, receipt line items and scanned-PDF extraction, configurable insight thresholds, automatic independent backups, SMS, email forwarding, bank connections, multi-user workspaces and later original BRD analytics remain incomplete.</p></section>
+<div class="container">
+
+<!-- HEADER -->
+<header class="doc-header">
+  <div class="tag">requirements &amp; architecture — custom build</div>
+  <h1>Personal Command Center</h1>
+  <p class="subtitle">Unified financial and operational visibility across W-2 income, personal expenses, consulting engagements, and side ventures — privacy-first, owner-controlled, and designed for free-tier infrastructure</p>
+  <div class="doc-meta">
+    <span>version 3.1</span>
+    <span>September 2026</span>
+    <span>status: reviewed — ready for MVP planning</span>
+    <span>infra cost: $0/mo</span>
+    <span>data policy: minimized</span>
+  </div>
+</header>
+
+<!-- TOC -->
+<nav class="toc">
+  <div class="toc-title">contents</div>
+  <div class="toc-grid">
+    <a href="#s01"><span>01</span> Build vs. Buy Analysis</a>
+    <a href="#s08"><span>08</span> Data Architecture &amp; Schema</a>
+    <a href="#s02"><span>02</span> Privacy &amp; Data Sovereignty</a>
+    <a href="#s09"><span>09</span> System Architecture</a>
+    <a href="#s03"><span>03</span> Scope — What Goes In</a>
+    <a href="#s10"><span>10</span> Automation Engine</a>
+    <a href="#s04"><span>04</span> Business Requirements</a>
+    <a href="#s11"><span>11</span> Process Flows</a>
+    <a href="#s05"><span>05</span> Technical Requirements</a>
+    <a href="#s12"><span>12</span> Security &amp; Backup Model</a>
+    <a href="#s06"><span>06</span> Free-Tier Budget &amp; Limits</a>
+    <a href="#s13"><span>13</span> Phased Rollout</a>
+    <a href="#s07"><span>07</span> Recommendations</a>
+    <a href="#s14"><span>14</span> Risk Register</a>
+  </div>
+</nav>
+
+
+<!-- =========================================== -->
+<!-- SECTION 01: BUILD VS BUY -->
+<!-- =========================================== -->
+<div class="section" id="s01">
+  <div class="section-label">01 — build vs. buy analysis</div>
+  <h2>Why Custom Build Wins</h2>
+  <p>We evaluated Bonsai ($25/mo), Plutio ($19/mo), FreshBooks ($23/mo), Quicken Business & Personal ($8.99/mo), Wave (free), and several lightweight tracker apps. None solve the actual problem.</p>
+
+  <div class="compare-strip">
+    <div class="cs-header">Capability</div>
+    <div class="cs-header">Best Existing Tool</div>
+    <div class="cs-header">Custom Build</div>
+
+    <div class="cs-row">W-2 + consulting income in one P&L</div>
+    <div class="cs-row">Quicken (partial — no invoicing)</div>
+    <div class="cs-row highlight">✓ native</div>
+
+    <div class="cs-row">Invoice lifecycle with aging alerts</div>
+    <div class="cs-row">Bonsai / FreshBooks</div>
+    <div class="cs-row highlight">✓ build (simple at 3 clients)</div>
+
+    <div class="cs-row">Client revenue, expenses &amp; margin</div>
+    <div class="cs-row">Accounting tools + manual reconciliation</div>
+    <div class="cs-row highlight">✓ native (no hour tracking)</div>
+
+    <div class="cs-row">Supabase / Cloudflare free-tier monitoring</div>
+    <div class="cs-row">None</div>
+    <div class="cs-row highlight">✓ native</div>
+
+    <div class="cs-row">Client pipeline + proposal tracking</div>
+    <div class="cs-row">Plutio</div>
+    <div class="cs-row highlight">✓ build</div>
+
+    <div class="cs-row">Tax reserve planning estimate</div>
+    <div class="cs-row">Bonsai (paid)</div>
+    <div class="cs-row highlight">✓ build (IRS formula)</div>
+
+    <div class="cs-row">SaaS productization tracker</div>
+    <div class="cs-row">None</div>
+    <div class="cs-row highlight">✓ native</div>
+
+    <div class="cs-row">Personal budget + business finances unified</div>
+    <div class="cs-row">Monarch Money ($15/mo) or Quicken</div>
+    <div class="cs-row highlight">✓ native (one ledger)</div>
+
+    <div class="cs-row">Needs-based spending vs. income ratio</div>
+    <div class="cs-row">Mint (dead) / YNAB ($14/mo)</div>
+    <div class="cs-row highlight">✓ native (auto-calculated)</div>
+
+    <div class="cs-row">Weekly digest / notifications</div>
+    <div class="cs-row">None (cross-tool)</div>
+    <div class="cs-row highlight">✓ native</div>
+
+    <div class="cs-row">Monthly cost</div>
+    <div class="cs-row">$9–$25/mo (+ tool sprawl)</div>
+    <div class="cs-row highlight">$0/mo</div>
+  </div>
+
+  <div class="verdict">
+    <h3>Verdict: custom build</h3>
+    <p>The differentiators are a unified W-2 + consulting cash view, client-level revenue and direct-cost visibility, and infrastructure monitoring across owner-controlled Supabase/Cloudflare deployments. At 3–10 clients, the system should remain a decision dashboard and categorized cash ledger—not attempt to replace formal accounting software.</p>
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 02: PRIVACY -->
+<!-- =========================================== -->
+<div class="section" id="s02">
+  <div class="section-label">02 — privacy &amp; data sovereignty</div>
+  <h2>Privacy &amp; Data Sovereignty</h2>
+  <p><strong>Privacy by minimization:</strong> collect only what is required for reporting. The system never requests or stores bank login credentials, full account or card numbers, SSNs, EINs/TINs, or identity documents. Data is processed in infrastructure accounts controlled by the owner; hosting providers necessarily process stored and transmitted data.</p>
+
+  <div class="compare-strip">
+    <div class="cs-header">What apps like Empower/Monarch do</div>
+    <div class="cs-header">What this system does instead</div>
+
+    <div class="cs-row">Plaid connects to your bank, reads all transactions, stores them on their servers</div>
+    <div class="cs-row highlight">You export CSV from your bank's own site, upload to your own Supabase instance</div>
+
+    <div class="cs-row">Your transaction history is a product — they analyze, aggregate, and monetize it</div>
+    <div class="cs-row highlight">Your data sits in a Postgres database only you can access (RLS + 2FA)</div>
+
+    <div class="cs-row">Bank credentials stored by a third-party middleware company</div>
+    <div class="cs-row highlight">No bank credentials stored anywhere — CSV is a read-only export</div>
+
+    <div class="cs-row">Data deletion requests are "processed" — unclear if fully honored</div>
+    <div class="cs-row highlight">Owner-controlled database, complete export, deletion workflow, and independent encrypted backup</div>
+
+    <div class="cs-row">Subject to their privacy policy changes, data breaches, acquisitions</div>
+    <div class="cs-row highlight">Owner chooses providers and can export or migrate the data</div>
+  </div>
+
+  <div class="callout callout-green">
+    <strong>Data flow principle:</strong> Financial data enters through manual entry or a user-exported CSV. No bank APIs, OAuth connections, or aggregation middleware are used. Before import, account-number columns are ignored; the original CSV is parsed client-side and discarded after confirmation. Only normalized transaction fields are retained.
+  </div>
+
+  <h3>Required data-minimization controls</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>PR-01</td><td>Never request or store bank credentials, routing numbers, full account/card numbers, CVV data, SSNs, EINs/TINs, or identity-document images.</td><td><span class="priority-high">P0</span></td></tr>
+      <tr><td>PR-02</td><td>Represent accounts only with user-created labels such as “Personal Checking” or “Business Card.”</td><td><span class="priority-high">P0</span></td></tr>
+      <tr><td>PR-03</td><td>Preview CSV mappings, ignore prohibited columns, normalize approved rows, and discard the source file after confirmation.</td><td><span class="priority-high">P0</span></td></tr>
+      <tr><td>PR-04</td><td>Receipt retention is optional. Files use private Storage policies and signed URLs; extracted fields can remain after the image is deleted.</td><td><span class="priority-high">P0</span></td></tr>
+      <tr><td>PR-05</td><td>Email digests omit transaction-level detail and sensitive balances by default.</td><td><span class="priority-med">P1</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>What this costs you vs. what it saves you</h3>
+  <table class="req-table">
+    <thead><tr><th>Trade-off</th><th>You give up</th><th>You gain</th></tr></thead>
+    <tbody>
+      <tr><td>Bank sync</td><td>Automatic transaction import (you'll do CSV uploads instead)</td><td>No bank credential exposure and no financial aggregator</td></tr>
+      <tr><td>Auto-categorization</td><td>ML-trained categorization from day one</td><td>Self-learning keyword engine that gets smarter with YOUR data, not everyone's</td></tr>
+      <tr><td>Investment tracking</td><td>Real-time portfolio values</td><td>Monthly manual balance updates — accurate enough for net worth trending</td></tr>
+      <tr><td>Convenience</td><td>~15 minutes/week on data entry and CSV imports</td><td>Minimal collection, owner-controlled hosting accounts, and straightforward export</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>The 15-minute trade-off:</strong> The realistic cost of privacy-first personal finance is about 15 minutes per week — one CSV download from your bank, one upload, and a quick review of auto-categorized entries. That's less time than reading the privacy policy of any app you'd be replacing. And the automation engine (Section 09) shrinks this further over time as your keyword matcher learns your spending patterns.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 03: SCOPE -->
+<!-- =========================================== -->
+<div class="section" id="s03">
+  <div class="section-label">03 — scope</div>
+  <h2>What Goes in the Command Center</h2>
+  <p>Ten modules across two domains: <strong>personal financial health</strong> and <strong>consulting operations</strong>. The personal finance layer tells you where your money goes. The business layer tells you where it comes from. The analytics layer tells you what to do about it. Together, they answer the question no single tool can: "Am I actually getting ahead?"</p>
+
+  <div class="module-grid">
+    <div class="module-card" style="border-color: var(--accent-amber);">
+      <div class="card-icon">🏠</div>
+      <h4>Personal Finance</h4>
+      <p>Your full personal burn rate — mortgage, groceries, utilities, everything. This is what makes the "runway" metric real.</p>
+      <ul>
+        <li>Monthly recurring bills: mortgage/rent, car payment, insurance (auto/home/life), utilities, phone, internet, subscriptions</li>
+        <li>Variable spending: groceries, dining out, gas/transportation, clothing, entertainment, personal care</li>
+        <li>Periodic expenses: property tax, HOA, vehicle registration, medical copays, home maintenance</li>
+        <li>Savings &amp; investments: 401k contributions, IRA, brokerage transfers, emergency fund</li>
+        <li>Debt tracking: credit card balances, student loans, auto loans — minimum payments and payoff targets</li>
+        <li>Monthly personal burn rate (total fixed + average variable)</li>
+        <li>Spending by category with month-over-month trend</li>
+        <li>50/30/20 rule tracker: needs vs. wants vs. savings as % of take-home</li>
+        <li>Net worth snapshot: assets − liabilities (updated monthly)</li>
+      </ul>
+    </div>
+
+    <div class="module-card">
+      <div class="card-icon">💰</div>
+      <h4>Financial Core (Business)</h4>
+      <p>Unified P&L across all income streams + personal expenses — the one view that doesn't exist anywhere.</p>
+      <ul>
+        <li>W-2 income tracking (manual paystub entry, net and gross, YTD running total)</li>
+        <li>Consulting revenue per client (auto-populated from paid invoices)</li>
+        <li>Business expense tracking with categories and receipt photo upload</li>
+        <li>Combined cash flow waterfall: total income (W-2 + consulting) vs. total outflow (personal + business) vs. net</li>
+        <li>Rolling 12-month trend line across all income and expenses</li>
+        <li>Configurable tax reserve planner, clearly labeled as an estimate</li>
+        <li>Tax set-aside tracker (recommended vs. actual saved)</li>
+        <li>Infrastructure cost monitor per client project</li>
+        <li>True financial runway: liquid savings ÷ monthly personal burn rate</li>
+        <li>Year-end summary exportable as PDF</li>
+      </ul>
+    </div>
+
+    <div class="module-card">
+      <div class="card-icon">📋</div>
+      <h4>Business Records — Secondary Page</h4>
+      <p>Supporting records for invoices and consulting income; never shown as detailed client cards on the homepage.</p>
+      <ul>
+        <li>Client records: status (prospect / active / paused / completed), contract value, start date</li>
+        <li>Proposal pipeline: name, client, estimated value, date sent, follow-up dates</li>
+        <li>Revenue, direct expenses, outstanding invoices, and cash margin per client</li>
+        <li>Deliverable tracker per engagement with completion %</li>
+        <li>Engagement health score (payment timeliness, scope creep, communication frequency)</li>
+        <li>Client communication log (last contact, next action)</li>
+      </ul>
+    </div>
+
+    <div class="module-card" style="opacity:.82">
+      <div class="card-icon">🧾</div>
+      <h4>Invoice Engine</h4>
+      <p>Simple invoicing built for 3–10 clients, not enterprise accounting.</p>
+      <ul>
+        <li>Create invoices using fixed-fee, milestone, retainer, or manually entered service line items</li>
+        <li>Invoice status lifecycle: draft → sent → paid → overdue</li>
+        <li>Aging alerts at 15 / 30 / 60 days overdue</li>
+        <li>PDF generation with your branding (Supabase Edge Function)</li>
+        <li>Invoice history and search</li>
+        <li>Annual 1099-ready summary per client</li>
+      </ul>
+    </div>
+
+    <div class="module-card">
+      <div class="card-icon">🖥️</div>
+      <h4>Infrastructure Monitor — Optional</h4>
+      <p>A separate operational utility, excluded from the financial dashboard and MVP.</p>
+      <ul>
+        <li>Supabase project usage per client: database size, storage, egress, edge function invocations</li>
+        <li>Cloudflare Pages/Workers metrics: bandwidth, requests, deploy status</li>
+        <li>Free-tier headroom gauge (% consumed with threshold at 80%)</li>
+        <li>Cost projection: "at current growth, you'll hit paid tier in X weeks"</li>
+        <li>Uptime ping for deployed client sites (Edge Function cron)</li>
+      </ul>
+    </div>
+
+    <div class="module-card">
+      <div class="card-icon">📈</div>
+      <h4>Goals &amp; Growth</h4>
+      <p>The "where am I going" layer — not just where things are.</p>
+      <ul>
+        <li>Quarterly revenue targets vs. actual with gap analysis</li>
+        <li>Client acquisition funnel (leads → proposals → wins, conversion rate)</li>
+        <li>SaaS productization tracker (Revenue Intelligence Engine milestones)</li>
+        <li>Skill / certification tracking</li>
+        <li>MRR tracker (when SaaS revenue starts)</li>
+      </ul>
+    </div>
+
+    <div class="module-card">
+      <div class="card-icon">🔔</div>
+      <h4>Notifications &amp; Digest</h4>
+      <p>Don't wait until you open the dashboard — the dashboard comes to you.</p>
+      <ul>
+        <li>In-app notification center (bell icon, unread count)</li>
+        <li>Weekly email digest every Monday 7 AM (Supabase Edge Function + Resend free tier)</li>
+        <li>Alert triggers: overdue invoice, free-tier threshold, spending anomaly, tax reserve gap</li>
+        <li>Digest includes: income, spending, overdue invoices, upcoming bills, savings, and tax reserve status</li>
+      </ul>
+    </div>
+
+    <div class="module-card">
+      <div class="card-icon">📊</div>
+      <h4>Weekly Scorecard</h4>
+      <p>Seven numbers that summarize financial health. Glanceable on mobile, with no infrastructure status or detailed client information.</p>
+      <ul>
+        <li>Net cash position (liquid savings − upcoming obligations)</li>
+        <li>Personal spend this week vs. weekly budget</li>
+        <li>Financial runway in months</li>
+        <li>Total revenue recognized this week</li>
+        <li>Income sources: W-2, consulting, and other income</li>
+        <li>Outstanding AR (unpaid invoices total)</li>
+        <li>Savings and tax reserve progress</li>
+        <li>Trend arrows vs. prior week on all metrics</li>
+      </ul>
+    </div>
+    <div class="module-card" style="border-color: var(--accent-cyan);">
+      <div class="card-icon">🧠</div>
+      <h4>Analytics &amp; Recommendations</h4>
+      <p>The intelligence layer. Analyzes your data and tells you what to do — not just what happened. Rules-based, no AI, runs in Postgres.</p>
+      <ul>
+        <li><strong>Financial analysis:</strong> spending trends by category, income vs. expense ratio, cash flow forecast (3 months), burn rate trajectory, tax optimization gaps</li>
+        <li><strong>Business analysis:</strong> client cash margin, direct-cost trends, revenue concentration risk, invoice aging, and pipeline conversion</li>
+        <li><strong>Predictive:</strong> runway projection, infra cost projection, tax-reserve shortfall, and cash-flow pressure</li>
+        <li><strong>Recommendations:</strong> actionable cards such as "increase the tax reserve by $400," "Curry Gate direct costs rose 18%," or "70% revenue concentration risk"</li>
+        <li><strong>Delivery:</strong> insight cards on dashboard, weekly digest, in-app notifications for urgent triggers</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="section" id="s04">
+  <div class="section-label">04 — business requirements</div>
+  <h2>Business Requirements</h2>
+
+  <h3>Personal finance</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-P01</td><td>Track monthly recurring bills (mortgage/rent, car payment, insurance, utilities, phone, internet, subscriptions) with amount, due date, and auto-pay flag</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Monthly bills, paid status, skip/restore, template edits, per-month date/amount overrides and explicit matching. Annual occurrence handling remains planned.</small></td></tr>
+      <tr><td>BR-P02</td><td>Track variable personal spending by category: groceries, dining out, gas/transportation, clothing, entertainment, personal care, medical, gifts, miscellaneous</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Categorized transaction ledger and editable personal/business context.</small></td></tr>
+      <tr><td>BR-P03</td><td>Track periodic/annual expenses: property tax, HOA, vehicle registration, annual subscriptions, home maintenance, with prorated monthly cost</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-P04</td><td>Calculate monthly personal burn rate: total fixed recurring + rolling 3-month average of variable spending + prorated periodic expenses</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing burn calculation; annual proration and completeness-adjusted historical averages remain partial.</small></td></tr>
+      <tr><td>BR-P05</td><td>Track savings and investment contributions: 401k, IRA, brokerage, emergency fund — monthly amounts and running balances</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Goal balances and contributions; investment valuation is not implemented.</small></td></tr>
+      <tr><td>BR-P06</td><td>Track debt obligations: credit cards, student loans, auto loan — current balance, minimum payment, interest rate, payoff target date</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Account/card balance checks and transfers; interest and payoff schedules remain planned.</small></td></tr>
+      <tr><td>BR-P07</td><td>50/30/20 budget tracker: auto-categorize spending into needs (housing, utilities, groceries, insurance, minimum debt payments), wants (dining, entertainment, subscriptions), and savings/debt payoff — display as % of take-home pay</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing needs/wants/savings display; refunds reduce net spending.</small></td></tr>
+      <tr><td>BR-P08</td><td>Net worth snapshot: total assets (savings, investments, property estimate) minus total liabilities (mortgage balance, loans, credit cards). Manual monthly update.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-P09</td><td>Personal spending trend: month-over-month change per category with 3-month rolling average. Alert when any category exceeds its 3-month average by &gt;25%</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Previous-month comparison and category totals; multi-month spike alerts remain planned.</small></td></tr>
+      <tr><td>BR-P10</td><td>All 7 expense capture methods (see BR-D section below) route personal transactions to personal_expenses table via the smart categorization engine</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Expense &amp; data capture — 7 input methods, all free, all local</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Tech</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-D01</td><td><strong>Receipt scan:</strong> Snap a photo of any receipt (grocery, gas, restaurant). OCR extracts vendor, date, total, and line items client-side. User confirms parsed data, taps category, saves. Accuracy target: 90%+ on printed receipts.</td><td>Tesseract.js v5 (WASM, in-browser, Apache 2.0). ~10 MB download, cached locally, works offline after first load. Zero server calls.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Browser image OCR and reviewed merchant/date/total drafts. No measured accuracy target or line-item extraction. Live OCR/upload verification pending.</small></td></tr>
+      <tr><td>BR-D02</td><td><strong>CSV upload:</strong> Bulk import bank/credit card transactions. Auto-detect bank format (Chase, BofA, Wells Fargo, credit unions) by header pattern matching. Store parser profiles so each bank is recognized on second upload. Batch upload: multiple CSVs at once.</td><td>PapaParse (open source, 14KB). Parsing runs entirely in browser. No external service.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Single CSV mapping, MDY/DMY, signed amount or debit/credit, profiles keyed by statement headers, editable preview, isolated bad rows. Multi-file import remains planned.</small></td></tr>
+      <tr><td>BR-D03</td><td><strong>PDF statement parser:</strong> Upload monthly bank/credit card PDF statements. Extract all transaction rows — date, description, amount. Handle both text-layer PDFs and scanned/image PDFs.</td><td>pdf.js (Mozilla, open source) for text-layer extraction. Tesseract.js for scanned PDFs (OCR). Both client-side, zero server calls.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Text-layer receipt PDF extraction (10-page limit); scanned PDFs and bank-statement row reconstruction remain planned.</small></td></tr>
+      <tr><td>BR-D04</td><td><strong>Quick capture (FAB):</strong> Floating action button on every screen with two actions: Add Expense and Create Invoice. Expense templates support one-handed mobile entry.</td><td>React component. No external dependency.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Free phrase parser: one dollar amount per line/semicolon, editable transaction/bill/invoice drafts; ambiguous dates require correction.</small></td></tr>
+      <tr><td>BR-D05</td><td><strong>Recurring bills (auto-generated):</strong> Entered once in recurring_bills table (mortgage, car payment, insurance, Netflix, etc.). On the 1st of each month, auto-generate expected expense records. When matching CSV/receipt transaction arrives, status flips to "confirmed." Amount discrepancy &gt;5% triggers notification.</td><td>pg_cron (Supabase free tier). Postgres trigger for matching logic.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Monthly occurrences rendered on app access; manual skip, occurrence overrides, scheduled expected income and exact-amount payment match. No background cron or automatic matching.</small></td></tr>
+      <tr><td>BR-D06</td><td><strong>Email forwarding (bill parser):</strong> Set up bills@yourdomain.com. Forward utility bills, insurance statements, subscription confirmations to it. Worker parses email body for amount, vendor, date using regex patterns for common billers. Parsed data lands in review queue for one-tap confirmation.</td><td>Cloudflare Email Routing (free) + Cloudflare Worker (free tier: 100K req/day). Inbound email → Worker → parse with postal-mime → write to Supabase. Requires custom domain (~$10/yr). Optional — all other methods work without it.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-D07</td><td><strong>Voice / dictation:</strong> On the quick-capture form, tap mic icon. Say "forty-two fifty Shell gas." App parses amount + vendor + category from speech. Pre-fills form for one-tap confirmation.</td><td>Web Speech API (built into Chrome, Safari, Firefox). Runs on-device, no third-party speech service, no API key. Free forever.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-green">
+    <strong>Low-cost capture options:</strong> client-side receipt OCR, CSV parsing, PDF extraction, quick capture, recurring bills, optional email parsing, and optional browser speech can use open-source or free-tier services. Hosting and email providers still process data transmitted through their systems; voice availability and processing behavior vary by browser. Current provider limits must be verified before implementation.
+  </div>
+
+  <h3>Smart categorization engine (shared by all input methods)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-D08</td><td>All 7 input methods feed into a single smart categorization engine. Engine auto-routes each transaction to personal_expenses or business expenses table based on vendor_rules table.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Shared capture classifier and vendor rules, stored in a versioned workspace document rather than normalized expense tables.</small></td></tr>
+      <tr><td>BR-D09</td><td>category_rules table: vendor keyword → category + budget_type (need/want). Seeded with ~50 common patterns (KROGER → groceries/need, SHELL → gas/need, GITHUB → tools/business). Learns from every manual correction — after 2 months, 90%+ transactions auto-categorize.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Basic keyword patterns and learned vendor rules; no accuracy guarantee.</small></td></tr>
+      <tr><td>BR-D10</td><td>Duplicate detection: hash each transaction (date + amount + vendor normalized) to prevent double-import across CSV, receipt scan, and PDF sources. Flag near-duplicates (same amount, ±1 day) for manual review instead of silently dropping.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Exact and same-account same-amount adjacent-date warnings in new capture previews. User can include reviewed duplicates.</small></td></tr>
+      <tr><td>BR-D11</td><td>Unknown vendor handling: first occurrence of an unrecognized vendor prompts user for category + personal/business routing. Choice is stored in vendor_rules and applied automatically to all future transactions from that vendor.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Editable context/category and learned vendor category/type rules; context rule persistence remains planned.</small></td></tr>
+      <tr><td>BR-D12</td><td>Review queue: all auto-categorized transactions land in a review queue with a "confirm all" batch action. User scans the list, corrects any miscategorized items (corrections update the rules), and confirms. Designed for &lt;2 minutes weekly.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing review queue and confirm-visible action.</small></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Financial core (business)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-F01</td><td>Display consolidated monthly income across W-2 salary (net take-home + gross), each consulting client, and any product revenue in a single view</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing income types and gross/net fields.</small></td></tr>
+      <tr><td>BR-F02</td><td>Track business expenses by category (infra, tools, travel, meals, home office, subscriptions) with receipt photo upload to Supabase Storage — kept strictly separate from personal expenses</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Business labels and receipt references with private upload/signed read UI. Live storage verification pending.</small></td></tr>
+      <tr><td>BR-F03</td><td>Provide a tax reserve planning estimate using year-specific parameters, filing status, W-2 wages and withholding, consulting net income, and user-entered assumptions. Clearly label results as estimates—not tax advice—and never collect SSNs or tax identification numbers.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Only configurable reserve percentage; year-specific tax calculation remains deferred.</small></td></tr>
+      <tr><td>BR-F04</td><td>Display combined cash flow waterfall — all income (W-2 net + consulting) vs. all outflow (personal + business expenses) vs. net surplus/deficit — rolling 12-month view. Stacked bars show personal vs. business outflow breakdown.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing aggregate cash chart; transfer exclusion and refund treatment tested.</small></td></tr>
+      <tr><td>BR-F05</td><td>Track "tax set-aside" balance: recommended quarterly amount vs. what's actually been moved to savings, with deficit alert</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing tax reserve goal and gap.</small></td></tr>
+      <tr><td>BR-F06</td><td>All 7 expense capture methods (BR-D01–D07) route business transactions to the business expenses table. Same smart engine, same review queue, strict separation from personal data.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-F07</td><td>Generate monthly P&L statement and year-end tax summary exportable as PDF</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Printable scoped cash report; year-end tax summary remains planned.</small></td></tr>
+      <tr><td>BR-F08</td><td>Track infrastructure costs per client project (domain renewals, any future paid-tier upgrades) as a distinct expense category</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Editable Infrastructure category, optional client assignment.</small></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Invoice engine</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-I01</td><td>Create fixed-fee, milestone, retainer, or manually entered service invoices associated with a client; no time or hourly metrics are stored</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing fixed-value invoice forms and client records.</small></td></tr>
+      <tr><td>BR-I02</td><td>Invoice status lifecycle: draft → sent → paid → overdue. Manual status updates (no payment gateway integration needed)</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing lifecycle and partial/full payment recording.</small></td></tr>
+      <tr><td>BR-I03</td><td>Aging monitor: flag invoices at 15, 30, and 60 days past due with visual indicators and in-app notification</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Overdue status; 15/30/60-day aging buckets remain planned.</small></td></tr>
+      <tr><td>BR-I04</td><td>Generate branded PDF invoice (your name, address, client details, line items, total) via Supabase Edge Function using a headless renderer or HTML-to-PDF library</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Browser print output; no headless server PDF renderer.</small></td></tr>
+      <tr><td>BR-I05</td><td>Annual payment summary per client: total paid in the calendar year and client name. The system must not store EINs/TINs or SSNs.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-I06</td><td>When invoice status changes to "paid," automatically: (a) create income_record entry, (b) recalculate quarterly tax estimate, (c) update cash flow</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Payment creates consulting income; amount validations tested.</small></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Client &amp; pipeline</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-C01</td><td>Client record with status (prospect / active / paused / completed), contract type (fixed/milestone/retainer), contract value, and start date</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing client records.</small></td></tr>
+      <tr><td>BR-C02</td><td>Proposal pipeline tracker: name, client, estimated value, date sent, status (draft / sent / won / lost), follow-up reminder date</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing pipeline status and follow-up date.</small></td></tr>
+      <tr><td>BR-C03</td><td>Client cash margin calculated as payments received minus direct expenses assigned to that client, with drill-down to supporting records</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing cash margin and supporting ledger navigation.</small></td></tr>
+      <tr><td>BR-C04</td><td>Deliverable tracker per engagement: name, due date, completion %, status</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-C05</td><td>Keep detailed client revenue, expenses, invoices, deliverables, and cash margin on secondary Business/Client pages. The homepage may show only total consulting income and total outstanding receivables.</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Business details on secondary pages.</small></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Infrastructure, notifications &amp; growth</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>BR-M01</td><td>Optional post-MVP job polls Supabase usage for owner-managed projects. No infrastructure metrics appear on the main financial dashboard.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-M02</td><td>Optional post-MVP job polls Cloudflare analytics for owner-managed deployments.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-M03</td><td>Show free-tier headroom only on a separate Infrastructure page; alerts appear only when action is required.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-M04</td><td>Cost projection: extrapolate current usage growth rate and estimate weeks until paid tier is required</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-N01</td><td>In-app notification center with unread badge; persisted to notifications table in Postgres</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Derived in-app actions; no notification table/unread persistence.</small></td></tr>
+      <tr><td>BR-N02</td><td>Weekly digest every Monday at 7 AM ET. Contents: revenue recap, spending, overdue invoices, infra alerts, and upcoming deadlines. Email content excludes detailed transactions and sensitive balances by default.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-G01</td><td>Set quarterly revenue targets; display actual vs. target with gap and on-track/off-track indicator</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-G02</td><td>Client acquisition funnel: leads → proposals sent → proposals won, with conversion rate and average deal size</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-G03</td><td>SaaS productization milestone tracker (Revenue Intelligence Engine): kanban-style board with milestones</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Analytics &amp; recommendations engine</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td colspan="3" style="background:var(--surface);color:var(--accent-cyan);font-weight:600;font-size:0.82rem;">Financial analysis</td></tr>
+      <tr><td>BR-A01</td><td><strong>Spending trend analysis:</strong> For each personal expense category, calculate month-over-month change and 3-month rolling average. Identify the top 3 fastest-growing categories. Surface as: "Groceries up 32% — dining out drove $X of the increase."</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Monthly spending/category comparison and source records. Top-growth ranking/rolling alerts remain planned.</small></td></tr>
+      <tr><td>BR-A02</td><td><strong>Income vs. expense ratio:</strong> Track total income (W-2 net + consulting) ÷ total outflow (personal + business) as a monthly ratio. Alert when ratio drops below 1.2 (spending within 20% of income). Surface as: "Your income-to-expense ratio dropped to 1.1 — you're saving less than 10% of take-home."</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing overview calculations; new report displays income and spending. Ratio alert remains planned.</small></td></tr>
+      <tr><td>BR-A03</td><td><strong>Cash flow forecast (3-month):</strong> Project forward 90 days using: recurring bills (known), average variable personal spend (estimated), expected consulting revenue (from active invoices + pipeline), and known upcoming expenses. Surface as: "Next 3 months: projected surplus $X or deficit $Y. [Month] is your tightest month."</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> 90-day daily forecast: monthly bills, explicit variable spend and income, optional invoices, delay, buffer and one-time purchase. Conservative excludes invoices. Invoice/scenario logic tested; live UI pending.</small></td></tr>
+      <tr><td>BR-A04</td><td><strong>Burn rate trajectory:</strong> Track whether monthly burn rate is increasing, stable, or decreasing over last 6 months. If increasing &gt;5% month-over-month for 3 consecutive months, alert. Surface as: "Your personal burn rate has increased $X/month for 3 months straight. At this rate, your runway drops from Y to Z months by [date]."</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A05</td><td><strong>Tax optimization gaps:</strong> Compare actual tax set-aside vs. recommended amount. If quarterly estimate shows underpayment risk, calculate the specific dollar shortfall. Surface as: "Raise your Q4 set-aside by $400. YTD consulting income is $6K above your original estimate."</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> User-configured reserve goal gap, not underpayment/tax advice.</small></td></tr>
+      <tr><td>BR-A06</td><td><strong>50/30/20 drift alert:</strong> When the needs/wants/savings split drifts more than 5 percentage points from target in any bucket, identify the specific categories driving the drift. Surface as: "Wants spending hit 35% (target: 30%). Entertainment and subscriptions added $X vs. last quarter."</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+
+      <tr><td colspan="3" style="background:var(--surface);color:var(--accent-cyan);font-weight:600;font-size:0.82rem;">Business analysis</td></tr>
+      <tr><td>BR-A07</td><td><strong>Client cash-margin ranking:</strong> For each active client, calculate payments received minus direct expenses assigned to that client. Rank clients and provide drill-down to the source transactions. Do not present this as accrual-accounting profit.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing client cash margin; ranking remains planned.</small></td></tr>
+      <tr><td>BR-A08</td><td><strong>Client cost trend:</strong> Compare direct client costs and cash margin over rolling 90-day periods. Alert when direct costs increase by more than the configured threshold.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A09</td><td><strong>Revenue concentration risk:</strong> Calculate each client's share of total consulting revenue. Alert when any single client exceeds 60% of revenue. Model runway impact if that client paused. Surface as: "70% of consulting revenue is from Anira Brows. If they pause, your runway drops from 4.2 to 2.1 months."</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A10</td><td><strong>Pipeline conversion analysis:</strong> Track proposals: total sent, won, lost, aging. Calculate win rate and average days-to-close. Alert when a proposal ages past the average close time. Surface as: "Proposal to [prospect] has been pending 23 days. Your average close time is 11 days — win rate drops 40% after 14 days."</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A11</td><td><strong>Receivables pressure:</strong> Compare outstanding invoices with projected obligations and available cash. Alert when delayed collections could create a projected cash shortfall.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Expected/conservative cash scenarios expose delayed collections and buffer shortfall.</small></td></tr>
+
+      <tr><td colspan="3" style="background:var(--surface);color:var(--accent-cyan);font-weight:600;font-size:0.82rem;">Predictive analysis</td></tr>
+      <tr><td>BR-A12</td><td><strong>Runway projection:</strong> Calculate current runway (liquid savings ÷ burn rate). Project forward: if burn rate trend continues and income stays flat, when does runway hit 3 months? 1 month? Surface as: "At current trajectory, runway drops below 3 months by [date]. Reducing discretionary spending by $X/month would extend it to [date]."</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Existing runway summary plus 90-day cash low point; long-term burn trajectory remains planned.</small></td></tr>
+      <tr><td>BR-A13</td><td><strong>Contract-value review:</strong> Track the date and value of contract changes. Flag clients whose direct costs are rising while contract value remains unchanged.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A14</td><td><strong>Delivery risk:</strong> Identify overlapping deliverable deadlines and overdue milestones without estimating hours or utilization.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A15</td><td><strong>Seasonal spending forecast:</strong> After 12+ months of data, detect seasonal spending patterns (holidays, summer travel, back-to-school, annual insurance renewals). Project upcoming high-spend months. Surface as: "November historically runs $X above average. Start setting aside $Y/month now."</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+
+      <tr><td colspan="3" style="background:var(--surface);color:var(--accent-cyan);font-weight:600;font-size:0.82rem;">Recommendation delivery</td></tr>
+      <tr><td>BR-A16</td><td><strong>Insight cards on dashboard:</strong> Top 3 most actionable recommendations displayed as cards on the dashboard homepage, ranked by urgency (runway/tax alerts first, optimization suggestions second). Each card shows: what changed, why it matters, what to do. One-tap dismiss or snooze (7 days).</td><td><span class="priority-high">P0</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Action links and persistent 7-day snooze/dismiss on Insights. Homepage retains existing priorities; urgency ranking remains partial.</small></td></tr>
+      <tr><td>BR-A17</td><td><strong>Weekly digest integration:</strong> Monday email digest includes a "Recommendations" section with the top 3 insights generated since last digest. Each includes one specific action the user can take this week.</td><td><span class="priority-med">P1</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+      <tr><td>BR-A18</td><td><strong>Recommendation history:</strong> All generated recommendations stored in a recommendations table with: type, trigger_rule, generated_at, dismissed_at, acted_on. Allows tracking which recommendations led to action and tuning thresholds over time.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Partially implemented / live verification pending:</strong> Preference changes enter audit; dedicated recommendation history remains planned.</small></td></tr>
+      <tr><td>BR-A19</td><td><strong>Configurable thresholds:</strong> User can adjust runway, spending-spike, revenue-concentration, direct-cost increase, and proposal-aging thresholds. Store settings per user and preserve change history.</td><td><span class="priority-low">P2</span></td></tr><tr><td colspan="5"><small><strong>Planned / deferred:</strong> Planned or deferred. Not claimed implemented in this release.</small></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-cyan">
+    <strong>No AI required.</strong> Recommendations are deterministic rules: when a verified metric crosses a configured threshold, generate an insight containing the supporting numbers. Use transaction, payment, expense, invoice, and income changes plus scheduled trend analysis. No machine-learning or model inference is required.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 04: TECHNICAL REQUIREMENTS -->
+<!-- =========================================== -->
+<div class="section" id="s05">
+  <div class="section-label">05 — technical requirements</div>
+  <h2>Technical Requirements</h2>
+
+  <h3>Platform &amp; hosting — all free tier</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td>TR-P01</td><td>Frontend: React (Vite) SPA deployed to Cloudflare Pages</td><td>Free tier: unlimited sites, 500 builds/month, global CDN. Consistent with client deployments.</td></tr>
+      <tr><td>TR-P02</td><td>Backend: Supabase free tier — Postgres (500 MB), Auth, Edge Functions (500K invocations/mo), Storage (1 GB), Realtime</td><td>Single-user app uses &lt;1% of free-tier limits. No separate backend needed.</td></tr>
+      <tr><td>TR-P03</td><td>Email: Resend free tier (100 emails/day, 3,000/month)</td><td>Weekly digest = 4 emails/month. Free tier is 750× headroom.</td></tr>
+      <tr><td>TR-P04</td><td>CI/CD: GitHub Actions (2,000 min/month free for public repos, 500 for private)</td><td>Builds take ~2 min. Even at 5 deploys/day, uses &lt;15% of free minutes.</td></tr>
+      <tr><td>TR-P05</td><td>Charts: Recharts (React) — open source, zero cost, no external API calls</td><td>Cash flow, receivables, spending, runway, and revenue trends rendered client-side.</td></tr>
+      <tr><td>TR-P06</td><td>PDF generation: @react-pdf/renderer or jsPDF in Edge Function</td><td>Invoice PDFs generated server-side, stored in Supabase Storage, linked to invoice record.</td></tr>
+      <tr><td>TR-P07</td><td>CSS: Tailwind CSS</td><td>Utility-first, tree-shakes to tiny bundle, no runtime cost.</td></tr>
+      <tr><td>TR-P08</td><td>Receipt OCR: Tesseract.js v5 (WASM)</td><td>Client-side OCR. ~10 MB WASM download, cached in browser. Extracts vendor, date, total from receipt photos. Apache 2.0 license. Zero server calls — image never leaves the device.</td></tr>
+      <tr><td>TR-P09</td><td>PDF parsing: pdf.js (Mozilla)</td><td>Client-side text extraction from PDF bank statements. For scanned PDFs without text layers, falls back to Tesseract.js OCR. Open source.</td></tr>
+      <tr><td>TR-P10</td><td>CSV parsing: PapaParse</td><td>Open source, 14KB. Streaming parser handles large bank exports. Runs entirely in browser.</td></tr>
+      <tr><td>TR-P11</td><td>Voice input: Web Speech API</td><td>Built into Chrome, Safari, Firefox. On-device speech-to-text, no API key, no third-party service. Parses spoken amount + vendor + category.</td></tr>
+      <tr><td>TR-P12</td><td>Inbound email: Cloudflare Email Routing + Workers</td><td>Free inbound email processing. Routes incoming bills to a Worker that parses with postal-mime and writes to Supabase. Requires custom domain (~$10/yr). Optional.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Data architecture</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td>TR-D01</td><td>All monetary values stored as integers (cents)</td><td>$150.75 stored as 15075. No floating-point drift. Format on display only.</td></tr>
+      <tr><td>TR-D02</td><td>Soft deletes on all financial tables (deleted_at timestamp)</td><td>Never hard-delete financial records. Audit trail for tax purposes.</td></tr>
+      <tr><td>TR-D03</td><td>RLS policies: all tables scoped to auth.uid()</td><td>Single-tenant by design but enforced at DB level. If you ever share the app, data is isolated.</td></tr>
+      <tr><td>TR-D04</td><td>Timestamps in UTC; display in user's local timezone (America/New_York)</td><td>Edge Functions run in multiple regions — UTC prevents drift.</td></tr>
+      <tr><td>TR-D05</td><td>Database migrations tracked via Supabase CLI (supabase db diff / supabase migration new)</td><td>Schema changes are version-controlled, not applied ad-hoc in the dashboard.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Integrations — your own infrastructure only, zero third-party financial data access</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Integration</th><th>Method</th><th>Cost</th><th>Phase</th></tr></thead>
+    <tbody>
+      <tr><td>TR-I01</td><td>Supabase Management API</td><td>Edge Function cron (daily). Authenticated via service_role key stored in Supabase Vault.</td><td>Free</td><td>P2</td></tr>
+      <tr><td>TR-I02</td><td>Cloudflare Analytics API (GraphQL)</td><td>Edge Function cron (daily). Authenticated via CF API token (read-only analytics scope).</td><td>Free</td><td>P2</td></tr>
+      <tr><td>TR-I03</td><td>Outbound email (weekly digest)</td><td>Resend free tier (100 emails/day). Edge Function triggered by pg_cron weekly schedule.</td><td>Free</td><td>P2</td></tr>
+      <tr><td>TR-I04</td><td>Inbound email (bill capture)</td><td>Cloudflare Email Routing (free) → Cloudflare Worker → parse with postal-mime → write to Supabase. Requires custom domain.</td><td>Free (+ ~$10/yr domain)</td><td>P3</td></tr>
+      <tr><td>TR-I05</td><td>Receipt OCR</td><td>Tesseract.js v5 WASM running in browser. Camera access via getUserMedia API. Image never leaves device.</td><td>Free</td><td>P1</td></tr>
+      <tr><td>TR-I06</td><td>CSV / PDF import</td><td>PapaParse (CSV) + pdf.js (PDF text) + Tesseract.js (scanned PDF OCR). All client-side.</td><td>Free</td><td>P1</td></tr>
+      <tr><td>TR-I07</td><td>Voice capture</td><td>Web Speech API (browser native). No API key, on-device processing.</td><td>Free</td><td>P2</td></tr>
+      <tr><td>TR-I08</td><td>Uptime monitoring</td><td>Edge Function cron (every 15 min) pings each deployed client URL, logs HTTP status and response time.</td><td>Free</td><td>P3</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Non-functional requirements</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td>TR-N01</td><td>Dashboard page load</td><td>&lt; 2s on 4G (Vite code-splitting + Cloudflare CDN)</td></tr>
+      <tr><td>TR-N02</td><td>Auth: Supabase Auth, email/password + TOTP 2FA</td><td>Single user, but financial data — protect it.</td></tr>
+      <tr><td>TR-N03</td><td>Mobile responsive</td><td>Expense capture and invoice status checks must work one-handed.</td></tr>
+      <tr><td>TR-N04</td><td>Data export: full database dump as JSON or CSV on demand</td><td>No vendor lock-in. Portable to any Postgres host.</td></tr>
+      <tr><td>TR-N05</td><td>Accessibility</td><td>WCAG 2.1 AA — keyboard navigation, screen reader labels, color contrast ratios.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 05: FREE-TIER BUDGET -->
+<!-- =========================================== -->
+<div class="section" id="s06">
+  <div class="section-label">06 — free-tier budget</div>
+  <h2>Free-Tier Budget &amp; Limits</h2>
+  <p>Every component of the stack runs on a free tier. Here's how much headroom you actually have as a single-user app.</p>
+
+  <div class="cost-grid">
+    <div class="cost-card cost-green">
+      <div class="cost-label">Total Monthly Cost</div>
+      <div class="cost-value">$0</div>
+      <div class="cost-note">All phases, all modules</div>
+    </div>
+    <div class="cost-card cost-green">
+      <div class="cost-label">Paid Tier Trigger</div>
+      <div class="cost-value">None</div>
+      <div class="cost-note">Single user won't hit limits</div>
+    </div>
+    <div class="cost-card cost-blue">
+      <div class="cost-label">Optional: Custom Domain</div>
+      <div class="cost-value">~$10/yr</div>
+      <div class="cost-note">Enables email bill forwarding</div>
+    </div>
+  </div>
+
+  <table class="req-table">
+    <thead><tr><th>Service</th><th>Free Tier Limit</th><th>Your Projected Usage</th><th>Headroom</th></tr></thead>
+    <tbody>
+      <tr><td>Supabase DB</td><td>500 MB</td><td>~5 MB (years of financial records for 1 user)</td><td>99%</td></tr>
+      <tr><td>Supabase Storage</td><td>1 GB</td><td>~100 MB (receipt photos, invoice PDFs, statement uploads)</td><td>90%</td></tr>
+      <tr><td>Supabase Edge Fn</td><td>500K invocations/mo</td><td>~2K (daily crons + on-demand PDF gen)</td><td>99.6%</td></tr>
+      <tr><td>Supabase Auth</td><td>50K MAU</td><td>1 user</td><td>99.99%</td></tr>
+      <tr><td>CF Pages</td><td>500 builds/mo, unlimited bandwidth</td><td>~30 builds/mo</td><td>94%</td></tr>
+      <tr><td>CF Workers</td><td>100K requests/day</td><td>~100 requests/day (+ email parsing if enabled)</td><td>99.9%</td></tr>
+      <tr><td>CF Email Routing</td><td>Unlimited inbound, free</td><td>~20 forwarded bills/month</td><td>99.99%</td></tr>
+      <tr><td>Resend Email</td><td>100/day, 3K/month</td><td>4/month (weekly digest only)</td><td>99.9%</td></tr>
+      <tr><td>GitHub Actions</td><td>2,000 min/mo (public)</td><td>~60 min/mo</td><td>97%</td></tr>
+      <tr><td>Tesseract.js</td><td>Unlimited (client-side)</td><td>~30 receipt scans/month</td><td>∞</td></tr>
+      <tr><td>pdf.js</td><td>Unlimited (client-side)</td><td>~4 statement parses/month</td><td>∞</td></tr>
+      <tr><td>Web Speech API</td><td>Unlimited (browser native)</td><td>~20 voice entries/month</td><td>∞</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-green">
+    <strong>Planning assumption:</strong> Current free tiers appear sufficient for a single user, but quotas, inactive-project behavior, provider terms, storage growth, backups, and outbound email must be verified before implementation and monitored after launch.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 06: RECOMMENDATIONS -->
+<!-- =========================================== -->
+<div class="section" id="s07">
+  <div class="section-label">07 — recommendations</div>
+  <h2>Recommendations</h2>
+
+  <h3>Architecture recommendations</h3>
+  <div class="rec-grid">
+    <div class="rec-card">
+      <h4>Use Supabase Edge Functions for all server-side logic</h4>
+      <p>Don't split logic between Cloudflare Workers and Supabase Edge Functions. Keep Workers as a dumb CDN/proxy layer only. All business logic — cron jobs, PDF generation, email sending, API integrations — runs in Edge Functions. One runtime, one deploy target, one set of secrets in Supabase Vault. Simpler debugging, simpler architecture.</p>
+    </div>
+    <div class="rec-card">
+      <h4>Start with manual entry, automate later</h4>
+      <p>Build CSV import in Phase 1 but don't over-invest in parsing. For 3 clients and a W-2, you'll have ~20 transactions/month. Manual entry with category dropdowns is faster than debugging CSV column mapping across 4 different bank export formats. Automate when friction becomes real, not theoretical.</p>
+    </div>
+    <div class="rec-card">
+      <h4>Build a configurable tax reserve planner</h4>
+      <p>Use tax-year parameters and user-entered filing assumptions, W-2 wages, withholding, and net consulting income. Account for the Social Security wage base and applicable Medicare rules. Label every result as an estimate and review it annually against the current IRS Form 1040-ES.</p>
+    </div>
+    <div class="rec-card rec-info">
+      <h4>Use Supabase Realtime for the dashboard, not polling</h4>
+      <p>Subscribe only where live synchronization materially helps, such as invoices and notifications. Realtime is optional rather than an MVP dependency.</p>
+    </div>
+  </div>
+
+  <h3>Data &amp; financial recommendations</h3>
+  <div class="rec-grid">
+    <div class="rec-card rec-warn">
+      <h4>Separate "revenue recognized" from "cash received"</h4>
+      <p>When an invoice is marked "paid," record both: (1) income_records entry with the payment date and (2) update the invoice status. Your P&L shows revenue by invoice period; your cash flow shows money by payment date. These are different views of the same event, and conflating them will make your tax summary wrong.</p>
+    </div>
+    <div class="rec-card rec-warn">
+      <h4>Track the "true cost" of each client</h4>
+      <p>Allow direct expenses to be tagged to a client. Report payments received minus direct costs as <strong>cash margin</strong>, with drill-down to underlying records; do not label it accounting profit.</p>
+    </div>
+    <div class="rec-card">
+      <h4>Weekly scorecard as the default landing page</h4>
+      <p>Make the weekly scorecard the homepage: usable cash, upcoming obligations, current spending, income sources, outstanding receivables, runway, and savings/tax reserve progress. Do not show infrastructure health or individual client cards. Every metric must show freshness and open the relevant supporting view.</p>
+    </div>
+    <div class="rec-card rec-info"><h4>Use one canonical transaction layer</h4><p>Normalize every imported or manually entered financial event before reporting. Preserve source, import batch, original description, account label, currency, reconciliation state, and duplicate fingerprint.</p></div>
+  </div>
+
+  <h3>UX &amp; product recommendations</h3>
+  <div class="rec-grid">
+    <div class="rec-card rec-alt">
+      <h4>Mobile-first capture, desktop-first analysis</h4>
+      <p>Expense capture and invoice status changes must be one-handed on mobile. Detailed reconciliation, imports, forecasting, and analysis should use the full desktop viewport.</p>
+    </div>
+    <div class="rec-card rec-alt">
+      <h4>Build a "quick capture" floating action button</h4>
+      <p>On mobile, provide two actions from anywhere: Add Expense and Create Invoice.</p>
+    </div>
+    <div class="rec-card rec-alt">
+      <h4>Use the weekly email digest as your accountability system</h4>
+      <p>The Monday digest should lead with exceptions: overdue invoices, unusual spending, low runway, tax-reserve gaps, upcoming obligations, and infrastructure warnings. Keep detailed transactions and sensitive balances out of email by default.</p>
+    </div>
+    <div class="rec-card">
+      <h4>Add a "Financial Runway" metric — now powered by real personal data</h4>
+      <p>Calculate: liquid savings ÷ monthly personal burn rate = months of runway if all consulting revenue stopped tomorrow. Because you're now tracking actual mortgage, groceries, insurance, and every other personal expense, this number is real — not a guess. Display it on the scorecard. It's the number that tells you whether you can afford to drop a bad client or invest time in SaaS productization.</p>
+    </div>
+  </div>
+
+  <h3>Personal finance recommendations</h3>
+  <div class="rec-grid">
+    <div class="rec-card rec-warn">
+      <h4>Track W-2 net AND gross — they serve different purposes</h4>
+      <p>Gross salary informs tax-reserve planning while net take-home drives cash flow and personal budgeting. Store both with their source period and never collect SSNs, employer tax identifiers, or full paystub documents.</p>
+    </div>
+    <div class="rec-card rec-warn">
+      <h4>Use a "personal burn rate" not a "budget"</h4>
+      <p>Budgets are aspirational and break on the first unexpected expense. Your burn rate is a backward-looking fact: what you actually spent over the last 3 months, averaged. Use it for the runway calculation, for deciding whether to take on a risky client, and for knowing when a raise is mandatory vs. nice-to-have. Display both the fixed component (mortgage, car, insurance — predictable) and the variable component (groceries, dining, gas — controllable).</p>
+    </div>
+    <div class="rec-card">
+      <h4>Set up recurring bills with due dates and auto-pay flags</h4>
+      <p>The recurring_bills table isn't just for tracking — it's for projecting. If you know your mortgage is $X on the 1st, car payment is $Y on the 15th, and insurance is $Z on the 20th, the dashboard can show you "between now and the end of the month, you have $W in fixed obligations left." That's a different (and more useful) number than your bank balance.</p>
+    </div>
+    <div class="rec-card rec-info">
+      <h4>Don't over-categorize personal spending</h4>
+      <p>You need ~10 personal categories, not 50. Groceries, dining out, gas, clothing, entertainment, medical, personal care, home maintenance, gifts, miscellaneous. That's it. The 50/30/20 split (needs/wants/savings) is more actionable than tracking whether you spent $4.50 on a latte vs. a smoothie. Assign each category a budget_type (need/want) at the category level, not per transaction.</p>
+    </div>
+  </div>
+
+  <h3>What I'd add beyond the original scope</h3>
+  <div class="rec-grid">
+    <div class="rec-card rec-info">
+      <h4>Contract &amp; document vault</h4>
+      <p>Store MSAs, SOWs, NDAs, and W-9s in Supabase Storage with metadata (client, type, expiration date). Alert 30 days before a contract expires. At tax time, every 1099-relevant document is in one place. Not a full document management system — just an indexed file drawer.</p>
+    </div>
+    <div class="rec-card rec-info">
+      <h4>Retrospective log</h4>
+      <p>After each engagement, record what went well, what did not, delivery outcome, cash margin, and whether you would work with the client again.</p>
+    </div>
+    <div class="rec-card rec-info">
+      <h4>Contract-value history</h4>
+      <p>Track contract-value changes, direct costs, revisions, and delivery outcomes over time. This supports pricing reviews without collecting hour data.</p>
+    </div>
+    <div class="rec-card rec-info">
+      <h4>Annual business review generator</h4>
+      <p>At year-end, generate a one-page summary of income, expenses, cash surplus, top client, outstanding receivables, clients acquired/lost, and goal attainment. Clearly distinguish management reporting from formal tax or accounting statements.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 07: DATA ARCHITECTURE -->
+<!-- =========================================== -->
+<div class="section" id="s08">
+  <div class="section-label">08 — data architecture</div>
+  <h2>Data Architecture &amp; Schema</h2>
+  <p>Canonical transactions form the ingestion layer, with personal and business reporting views preserving domain separation. Clients and projects are business dimensions. All user-owned records include user_id for RLS, created_at, updated_at, and deleted_at; critical changes also write immutable audit events.</p>
+
+  <div class="arch-container">
+    <svg viewBox="0 0 960 850" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <marker id="erd-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6" fill="#58a6ff"/>
+        </marker>
+      </defs>
+
+      <!-- Central: clients -->
+      <rect x="380" y="30" width="200" height="90" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="2"/>
+      <text x="480" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">clients</text>
+      <text x="480" y="74" text-anchor="middle" font-size="10" fill="#8b949e">id, name, status, contract_type,</text>
+      <text x="480" y="88" text-anchor="middle" font-size="10" fill="#8b949e">contract_value, start_date, notes</text>
+
+      <!-- projects -->
+      <rect x="690" y="30" width="200" height="90" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="790" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">projects</text>
+      <text x="790" y="74" text-anchor="middle" font-size="10" fill="#8b949e">id, client_id, name, status,</text>
+      <text x="790" y="88" text-anchor="middle" font-size="10" fill="#8b949e">budget_cents, description</text>
+
+      <line x1="580" y1="75" x2="690" y2="75" stroke="#58a6ff" stroke-width="1" marker-end="url(#erd-arrow)"/>
+
+      <!-- invoices -->
+      <rect x="70" y="170" width="220" height="100" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="180" y="195" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">invoices</text>
+      <text x="180" y="214" text-anchor="middle" font-size="10" fill="#8b949e">id, client_id, invoice_number,</text>
+      <text x="180" y="228" text-anchor="middle" font-size="10" fill="#8b949e">status, total_cents, issued_date,</text>
+      <text x="180" y="242" text-anchor="middle" font-size="10" fill="#8b949e">due_date, paid_date</text>
+
+      <!-- invoice_line_items -->
+      <rect x="70" y="310" width="220" height="80" rx="6" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="180" y="335" text-anchor="middle" font-size="12" font-weight="600" fill="#8b949e">invoice_line_items</text>
+      <text x="180" y="354" text-anchor="middle" font-size="10" fill="#6e7681">id, invoice_id, description,</text>
+      <text x="180" y="368" text-anchor="middle" font-size="10" fill="#6e7681">qty, unit_price_cents, total_cents</text>
+
+      <line x1="180" y1="270" x2="180" y2="310" stroke="#3a4560" stroke-width="1" marker-end="url(#erd-arrow)"/>
+
+      <!-- canonical transactions -->
+      <rect x="370" y="170" width="220" height="100" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="480" y="195" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">transactions</text>
+      <text x="480" y="214" text-anchor="middle" font-size="10" fill="#8b949e">id, account_id, import_batch_id,</text>
+      <text x="480" y="228" text-anchor="middle" font-size="10" fill="#8b949e">date, amount_cents, currency,</text>
+      <text x="480" y="242" text-anchor="middle" font-size="10" fill="#8b949e">domain, vendor, fingerprint</text>
+
+      <!-- expenses -->
+      <rect x="670" y="170" width="220" height="100" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="780" y="195" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">expenses</text>
+      <text x="780" y="214" text-anchor="middle" font-size="10" fill="#8b949e">id, client_id (nullable), date,</text>
+      <text x="780" y="228" text-anchor="middle" font-size="10" fill="#8b949e">amount_cents, category, vendor,</text>
+      <text x="780" y="242" text-anchor="middle" font-size="10" fill="#8b949e">receipt_path, is_deductible</text>
+
+      <!-- income_records -->
+      <rect x="70" y="430" width="220" height="80" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="180" y="455" text-anchor="middle" font-size="13" font-weight="700" fill="#d29922">income_records</text>
+      <text x="180" y="474" text-anchor="middle" font-size="10" fill="#8b949e">id, source (w2/consulting/product),</text>
+      <text x="180" y="488" text-anchor="middle" font-size="10" fill="#8b949e">amount_cents, date, client_id, invoice_id</text>
+
+      <!-- infra_metrics -->
+      <rect x="370" y="320" width="220" height="80" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="480" y="345" text-anchor="middle" font-size="13" font-weight="700" fill="#bc8cff">infra_metrics</text>
+      <text x="480" y="364" text-anchor="middle" font-size="10" fill="#8b949e">id, project_id, date, provider,</text>
+      <text x="480" y="378" text-anchor="middle" font-size="10" fill="#8b949e">metric_name, metric_value, unit</text>
+
+      <!-- notifications -->
+      <rect x="670" y="320" width="220" height="80" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="780" y="345" text-anchor="middle" font-size="13" font-weight="700" fill="#bc8cff">notifications</text>
+      <text x="780" y="364" text-anchor="middle" font-size="10" fill="#8b949e">id, type, title, message,</text>
+      <text x="780" y="378" text-anchor="middle" font-size="10" fill="#8b949e">is_read, entity_type, entity_id</text>
+
+      <!-- proposals -->
+      <rect x="370" y="430" width="220" height="80" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="480" y="455" text-anchor="middle" font-size="13" font-weight="700" fill="#d29922">proposals</text>
+      <text x="480" y="474" text-anchor="middle" font-size="10" fill="#8b949e">id, client_id, name, value_cents,</text>
+      <text x="480" y="488" text-anchor="middle" font-size="10" fill="#8b949e">status, sent_date, followup_date</text>
+
+      <!-- goals -->
+      <rect x="670" y="430" width="220" height="80" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="780" y="455" text-anchor="middle" font-size="13" font-weight="700" fill="#d29922">goals</text>
+      <text x="780" y="474" text-anchor="middle" font-size="10" fill="#8b949e">id, type (revenue/client/product),</text>
+      <text x="780" y="488" text-anchor="middle" font-size="10" fill="#8b949e">target_value, period, actual_value</text>
+
+      <!-- FK lines from clients -->
+      <line x1="380" y1="100" x2="250" y2="170" stroke="#58a6ff" stroke-width="1" marker-end="url(#erd-arrow)" stroke-dasharray="4,3"/>
+      <line x1="480" y1="120" x2="480" y2="170" stroke="#58a6ff" stroke-width="1" marker-end="url(#erd-arrow)" stroke-dasharray="4,3"/>
+      <line x1="580" y1="100" x2="720" y2="170" stroke="#58a6ff" stroke-width="1" marker-end="url(#erd-arrow)" stroke-dasharray="4,3"/>
+      <line x1="480" y1="120" x2="480" y2="430" stroke="#d29922" stroke-width="1" marker-end="url(#erd-arrow)" stroke-dasharray="4,3"/>
+
+      <!-- PERSONAL FINANCE TABLES -->
+      <rect x="70" y="540" width="220" height="80" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="180" y="565" text-anchor="middle" font-size="13" font-weight="700" fill="#d29922">recurring_bills</text>
+      <text x="180" y="584" text-anchor="middle" font-size="10" fill="#8b949e">id, name, amount_cents, due_day,</text>
+      <text x="180" y="598" text-anchor="middle" font-size="10" fill="#8b949e">category, frequency, is_autopay</text>
+
+      <rect x="370" y="540" width="220" height="80" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="480" y="565" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">personal_expenses</text>
+      <text x="480" y="584" text-anchor="middle" font-size="10" fill="#8b949e">id, date, amount_cents, category,</text>
+      <text x="480" y="598" text-anchor="middle" font-size="10" fill="#8b949e">vendor, budget_type (need/want)</text>
+
+      <rect x="670" y="540" width="220" height="80" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="780" y="565" text-anchor="middle" font-size="13" font-weight="700" fill="#d29922">debts_and_assets</text>
+      <text x="780" y="584" text-anchor="middle" font-size="10" fill="#8b949e">id, type (debt/asset), name,</text>
+      <text x="780" y="598" text-anchor="middle" font-size="10" fill="#8b949e">balance_cents, rate, payment_cents</text>
+
+      <!-- Divider label -->
+      <text x="480" y="530" text-anchor="middle" font-size="10" fill="#d29922" font-family="IBM Plex Mono, monospace">── PERSONAL FINANCE ──</text>
+
+      <!-- SMART ENGINE TABLES -->
+      <text x="480" y="640" text-anchor="middle" font-size="10" fill="#39d2c0" font-family="IBM Plex Mono, monospace">── SMART CATEGORIZATION ENGINE ──</text>
+
+      <rect x="70" y="655" width="220" height="70" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="180" y="678" text-anchor="middle" font-size="13" font-weight="700" fill="#39d2c0">vendor_rules</text>
+      <text x="180" y="697" text-anchor="middle" font-size="10" fill="#8b949e">id, keyword, target_table,</text>
+      <text x="180" y="711" text-anchor="middle" font-size="10" fill="#8b949e">category, budget_type, hits</text>
+
+      <rect x="370" y="655" width="220" height="70" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="480" y="678" text-anchor="middle" font-size="13" font-weight="700" fill="#39d2c0">category_rules</text>
+      <text x="480" y="697" text-anchor="middle" font-size="10" fill="#8b949e">id, keyword_pattern, category,</text>
+      <text x="480" y="711" text-anchor="middle" font-size="10" fill="#8b949e">budget_type (need/want), source</text>
+
+      <rect x="670" y="655" width="220" height="70" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="780" y="678" text-anchor="middle" font-size="13" font-weight="700" fill="#39d2c0">transaction_hashes</text>
+      <text x="780" y="697" text-anchor="middle" font-size="10" fill="#8b949e">id, hash, source_method,</text>
+      <text x="780" y="711" text-anchor="middle" font-size="10" fill="#8b949e">transaction_date, amount_cents</text>
+
+      <!-- ANALYTICS ENGINE TABLES -->
+      <text x="480" y="745" text-anchor="middle" font-size="10" fill="#f85149" font-family="IBM Plex Mono, monospace">── ANALYTICS &amp; RECOMMENDATIONS ──</text>
+
+      <rect x="70" y="760" width="260" height="70" rx="6" fill="#1c2230" stroke="#f85149" stroke-width="1.5"/>
+      <text x="200" y="783" text-anchor="middle" font-size="13" font-weight="700" fill="#f85149">recommendations</text>
+      <text x="200" y="802" text-anchor="middle" font-size="10" fill="#8b949e">id, type, trigger_rule, title, body,</text>
+      <text x="200" y="816" text-anchor="middle" font-size="10" fill="#8b949e">urgency, dismissed_at, acted_on</text>
+
+      <rect x="400" y="760" width="260" height="70" rx="6" fill="#1c2230" stroke="#f85149" stroke-width="1.5"/>
+      <text x="530" y="783" text-anchor="middle" font-size="13" font-weight="700" fill="#f85149">analysis_settings</text>
+      <text x="530" y="802" text-anchor="middle" font-size="10" fill="#8b949e">id, key, value, description</text>
+      <text x="530" y="816" text-anchor="middle" font-size="10" fill="#8b949e">(thresholds, targets, preferences)</text>
+
+      <rect x="730" y="760" width="180" height="70" rx="6" fill="#1c2230" stroke="#f85149" stroke-width="1.5"/>
+      <text x="820" y="783" text-anchor="middle" font-size="13" font-weight="700" fill="#f85149">monthly_snapshots</text>
+      <text x="820" y="802" text-anchor="middle" font-size="10" fill="#8b949e">id, month, income, expenses,</text>
+      <text x="820" y="816" text-anchor="middle" font-size="10" fill="#8b949e">net, burn_rate, runway, net_worth</text>
+
+      <!-- Legend -->
+      <rect x="70" y="30" width="200" height="136" rx="6" fill="#1c2230" stroke="#2a3040" stroke-width="1"/>
+      <text x="90" y="52" font-size="10" font-weight="600" fill="#8b949e">Legend</text>
+      <line x1="90" y1="66" x2="110" y2="66" stroke="#3fb950" stroke-width="2"/>
+      <text x="118" y="70" font-size="10" fill="#8b949e">Dimension tables</text>
+      <line x1="90" y1="82" x2="110" y2="82" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="118" y="86" font-size="10" fill="#8b949e">Fact tables</text>
+      <line x1="90" y1="98" x2="110" y2="98" stroke="#d29922" stroke-width="1.5"/>
+      <text x="118" y="102" font-size="10" fill="#8b949e">Summary / reference</text>
+      <line x1="90" y1="114" x2="110" y2="114" stroke="#d29922" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <text x="118" y="118" font-size="10" fill="#8b949e">Personal finance</text>
+      <line x1="90" y1="130" x2="110" y2="130" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="118" y="134" font-size="10" fill="#8b949e">Smart engine</text>
+      <line x1="90" y1="146" x2="110" y2="146" stroke="#f85149" stroke-width="1.5"/>
+      <text x="118" y="150" font-size="10" fill="#8b949e">Analytics &amp; recommendations</text>
+    </svg>
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>Key design choice — income:</strong> income_records is the single source of truth for all revenue. W-2 income is entered manually (monthly paystub — both net take-home and gross). Consulting income is auto-created when an invoice status changes to "paid." The P&L view queries income_records by source type — it never queries invoices directly for revenue figures.
+  </div>
+
+  <div class="callout callout-purple">
+    <strong>Key design choice — personal vs. business expenses:</strong> Personal and business expenses live in separate tables (personal_expenses vs. expenses). They are never commingled. The IRS requires clear separation for Schedule C deductions — mixing them in one table with a flag is a tax audit risk. The combined cash flow waterfall queries both tables and stacks the bars, but the underlying data stays cleanly separated. Recurring personal bills (mortgage, utilities, subscriptions) live in recurring_bills with a frequency and due-day so the dashboard can project future months. Debts and assets live in debts_and_assets for the net worth snapshot — balances are updated monthly.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 08: SYSTEM ARCHITECTURE -->
+<!-- =========================================== -->
+<div class="section" id="s09">
+  <div class="section-label">09 — system architecture</div>
+  <h2>System Architecture</h2>
+  <p>Single-user SPA backed by Supabase. Edge Functions handle suitable server-side logic. The design targets current free tiers, but quotas and product terms must be verified before deployment and monitored over time.</p>
+
+  <div class="arch-container">
+    <svg viewBox="0 0 960 580" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6" fill="#58a6ff"/>
+        </marker>
+        <marker id="arrow-dim" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6" fill="#3a4560"/>
+        </marker>
+        <marker id="arrow-amber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6" fill="#d29922"/>
+        </marker>
+      </defs>
+
+      <!-- Client Layer -->
+      <rect x="20" y="10" width="920" height="85" rx="8" fill="#161b22" stroke="#2a3040" stroke-width="1"/>
+      <text x="40" y="32" font-size="10" fill="#6e7681" font-family="IBM Plex Mono, monospace">CLIENT LAYER</text>
+
+      <rect x="140" y="38" width="175" height="44" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="227" y="56" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">React SPA (Vite)</text>
+      <text x="227" y="70" text-anchor="middle" font-size="9" fill="#8b949e">Recharts · Tailwind · React-PDF</text>
+
+      <rect x="390" y="38" width="175" height="44" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="477" y="56" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Mobile (Responsive)</text>
+      <text x="477" y="70" text-anchor="middle" font-size="9" fill="#8b949e">PWA · Quick Capture FAB</text>
+
+      <rect x="640" y="38" width="175" height="44" rx="6" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="727" y="56" text-anchor="middle" font-size="11" font-weight="600" fill="#8b949e">CSV Upload</text>
+      <text x="727" y="70" text-anchor="middle" font-size="9" fill="#6e7681">Bank transaction import</text>
+
+      <!-- CDN Layer -->
+      <rect x="20" y="110" width="920" height="70" rx="8" fill="#161b22" stroke="#2a3040" stroke-width="1"/>
+      <text x="40" y="132" font-size="10" fill="#6e7681" font-family="IBM Plex Mono, monospace">CDN / EDGE</text>
+
+      <rect x="240" y="130" width="200" height="38" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="340" y="154" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Cloudflare Pages</text>
+
+      <rect x="520" y="130" width="200" height="38" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="620" y="154" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Cloudflare CDN / Cache</text>
+
+      <!-- Supabase Layer -->
+      <rect x="20" y="200" width="920" height="200" rx="8" fill="#161b22" stroke="#2a3040" stroke-width="1"/>
+      <text x="40" y="222" font-size="10" fill="#6e7681" font-family="IBM Plex Mono, monospace">SUPABASE (FREE TIER)</text>
+
+      <rect x="60" y="238" width="140" height="52" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="130" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Auth</text>
+      <text x="130" y="276" text-anchor="middle" font-size="9" fill="#8b949e">Email + TOTP 2FA</text>
+
+      <rect x="220" y="238" width="170" height="52" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="305" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Postgres (500 MB)</text>
+      <text x="305" y="276" text-anchor="middle" font-size="9" fill="#8b949e">RLS · pg_cron</text>
+
+      <rect x="410" y="238" width="170" height="52" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="495" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Edge Functions</text>
+      <text x="495" y="276" text-anchor="middle" font-size="9" fill="#8b949e">Deno · 500K inv/mo</text>
+
+      <rect x="600" y="238" width="145" height="52" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="672" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Storage (1 GB)</text>
+      <text x="672" y="276" text-anchor="middle" font-size="9" fill="#8b949e">Receipts · PDFs</text>
+
+      <rect x="765" y="238" width="145" height="52" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="837" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Realtime</text>
+      <text x="837" y="276" text-anchor="middle" font-size="9" fill="#8b949e">Live dashboard sync</text>
+
+      <!-- Edge Function detail boxes -->
+      <rect x="100" y="315" width="155" height="38" rx="4" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="177" y="338" text-anchor="middle" font-size="9" fill="#8b949e">fn: generate-invoice-pdf</text>
+
+      <rect x="275" y="315" width="155" height="38" rx="4" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="352" y="338" text-anchor="middle" font-size="9" fill="#8b949e">fn: sync-infra-metrics</text>
+
+      <rect x="450" y="315" width="155" height="38" rx="4" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="527" y="338" text-anchor="middle" font-size="9" fill="#8b949e">fn: weekly-digest</text>
+
+      <rect x="625" y="315" width="155" height="38" rx="4" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="702" y="338" text-anchor="middle" font-size="9" fill="#8b949e">fn: uptime-check</text>
+
+      <rect x="800" y="315" width="120" height="38" rx="4" fill="#1c2230" stroke="#3a4560" stroke-width="1"/>
+      <text x="860" y="338" text-anchor="middle" font-size="9" fill="#8b949e">fn: tax-estimate</text>
+
+      <!-- External APIs -->
+      <rect x="20" y="415" width="920" height="75" rx="8" fill="#161b22" stroke="#2a3040" stroke-width="1"/>
+      <text x="40" y="437" font-size="10" fill="#6e7681" font-family="IBM Plex Mono, monospace">EXTERNAL APIS (ALL FREE)</text>
+
+      <rect x="80" y="448" width="175" height="32" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="167" y="469" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Supabase Mgmt API</text>
+
+      <rect x="280" y="448" width="175" height="32" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="367" y="469" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Cloudflare Analytics API</text>
+
+      <rect x="480" y="448" width="175" height="32" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="567" y="469" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Resend (100/day free)</text>
+
+      <rect x="680" y="448" width="175" height="32" rx="6" fill="#1c2230" stroke="#3a4560" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="767" y="469" text-anchor="middle" font-size="10" font-weight="600" fill="#6e7681">IRS bracket data (static)</text>
+
+      <!-- CI/CD -->
+      <rect x="20" y="505" width="920" height="60" rx="8" fill="#161b22" stroke="#2a3040" stroke-width="1"/>
+      <text x="40" y="527" font-size="10" fill="#6e7681" font-family="IBM Plex Mono, monospace">CI / CD</text>
+
+      <rect x="250" y="525" width="200" height="28" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="350" y="544" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">GitHub Actions (free tier)</text>
+
+      <rect x="510" y="525" width="200" height="28" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="610" y="544" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">→ Cloudflare Pages Deploy</text>
+
+      <!-- Arrows -->
+      <line x1="227" y1="82" x2="340" y2="130" stroke="#58a6ff" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="340" y1="168" x2="305" y2="238" stroke="#58a6ff" stroke-width="1" marker-end="url(#arrow)"/>
+      <line x1="340" y1="168" x2="495" y2="238" stroke="#58a6ff" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <line x1="352" y1="353" x2="167" y2="448" stroke="#d29922" stroke-width="1" marker-end="url(#arrow-amber)"/>
+      <line x1="352" y1="353" x2="367" y2="448" stroke="#d29922" stroke-width="1" marker-end="url(#arrow-amber)"/>
+      <line x1="527" y1="353" x2="567" y2="448" stroke="#d29922" stroke-width="1" marker-end="url(#arrow-amber)"/>
+
+      <line x1="450" y1="539" x2="510" y2="539" stroke="#39d2c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+    </svg>
+  </div>
+
+  <div class="callout callout-green">
+    <strong>Cost target:</strong> use open-source components and current free tiers where practical. The design does not guarantee permanent $0 operation; provider quotas, backup storage, domains, and email delivery may introduce costs.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 10: AUTOMATION ENGINE -->
+<!-- =========================================== -->
+<div class="section" id="s10">
+  <div class="section-label">10 — automation engine</div>
+  <h2>Automation Engine</h2>
+  <p>The goal is to reduce weekly manual effort to approximately 5–10 minutes after categorization rules mature. Client-side parsing minimizes uploaded source data, while configured hosting and email providers still process the data sent through their services.</p>
+
+  <h3>CSV smart import (Phase 1)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Automation</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>AU-01</td><td>Multi-bank CSV parser</td><td>Auto-detect bank format (Chase, BofA, Wells Fargo, credit unions) by header pattern matching. Map columns to: date, description, amount, category. Store parser profiles so each bank is recognized on second upload.</td></tr>
+      <tr><td>AU-02</td><td>Auto-routing: personal vs. business</td><td>Keyword-based router. "MORTGAGE", "KROGER", "SHELL" → personal_expenses. "GITHUB", "CLOUDFLARE", "SUPABASE" → business expenses. New vendors prompt once, then remember forever via a vendor_rules table.</td></tr>
+      <tr><td>AU-03</td><td>Smart categorization</td><td>Each transaction description is matched against a category_rules table: vendor keyword → category + budget_type (need/want). Rules are seeded with ~50 common patterns and learn from every manual correction you make. After 2 months, 90%+ of transactions should auto-categorize correctly.</td></tr>
+      <tr><td>AU-04</td><td>Duplicate detection</td><td>Hash each transaction (date + amount + vendor) to prevent double-import when you upload overlapping CSV date ranges. Flag near-duplicates (same amount, ±1 day) for manual review instead of silently dropping them.</td></tr>
+      <tr><td>AU-05</td><td>Batch upload</td><td>Upload multiple CSVs at once (checking, savings, credit card). Parser identifies which bank each file came from and routes accordingly. One drag-and-drop, all accounts processed.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Recurring bill automation (Phase 1)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Automation</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>AU-06</td><td>Auto-generate expected expenses</td><td>pg_cron runs on the 1st of each month. For each recurring_bill, generate a personal_expenses record with status "expected." When the matching CSV transaction arrives, status flips to "confirmed" and any amount difference is flagged.</td></tr>
+      <tr><td>AU-07</td><td>Bill change detection</td><td>When a confirmed bill amount differs from the recurring_bill amount by &gt;5%, trigger a notification: "Your electric bill was $X this month vs. the usual $Y." Helps catch rate increases early.</td></tr>
+      <tr><td>AU-08</td><td>Upcoming obligations projection</td><td>Dashboard shows: "Between now and month-end, you have $X in fixed bills remaining." Calculated from recurring_bills where due_day &gt; today's day-of-month.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Financial auto-calculations (Phase 1–2)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Automation</th><th>Trigger</th></tr></thead>
+    <tbody>
+      <tr><td>AU-09</td><td>Burn rate recalculation</td><td>On every personal_expenses insert/update. Recalc: fixed (sum of recurring_bills) + variable (rolling 3-month average of non-recurring personal expenses) + prorated periodic.</td></tr>
+      <tr><td>AU-10</td><td>Financial runway recalculation</td><td>On burn rate change or savings balance update. Runway = liquid savings ÷ monthly burn rate. Alert if runway drops below 3 months.</td></tr>
+      <tr><td>AU-11</td><td>Tax estimate recalculation</td><td>On every income_records insert. SE tax = net consulting × 0.9235 × 0.153. Federal = marginal bracket calc on total AGI. Runs as a Postgres function, not an Edge Function — instant, no network call.</td></tr>
+      <tr><td>AU-12</td><td>Client cash margin</td><td>On payment or direct-expense changes, calculate payments received minus direct client expenses and retain drill-down links.</td></tr>
+      <tr><td>AU-13</td><td>50/30/20 split recalculation</td><td>On every personal_expenses insert. Sums needs vs. wants vs. savings as % of last month's take-home. Alert when any bucket is &gt;5 percentage points off target.</td></tr>
+      <tr><td>AU-14</td><td>Net worth snapshot</td><td>Monthly pg_cron (1st of month). Sums all asset balances minus all debt balances from debts_and_assets table. Stores snapshot in a net_worth_history table for trend line.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Invoice &amp; billing automation (Phase 1–2)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Automation</th><th>Trigger</th></tr></thead>
+    <tbody>
+      <tr><td>AU-15</td><td>Generate invoice from template</td><td>Create a draft from fixed-fee, milestone, or retainer templates; the user reviews service line items before sending.</td></tr>
+      <tr><td>AU-16</td><td>Invoice aging monitor</td><td>Daily pg_cron checks all invoices where status = "sent." At 15, 30, and 60 days past due_date, creates a notification and updates the invoice with an aging_flag.</td></tr>
+      <tr><td>AU-17</td><td>Payment → revenue cascade</td><td>When a payment is recorded: create or update the income record, refresh the tax reserve estimate, update client cash margin, and update cash flow. Support partial and multiple payments.</td></tr>
+      <tr><td>AU-18</td><td>Recurring invoice templates</td><td>For retainer clients with fixed monthly fees: auto-generate a draft invoice on the 1st of each month from a template. You review and send — no creation step needed.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Notification &amp; reporting automation (Phase 2)</h3>
+  <table class="req-table">
+    <thead><tr><th>ID</th><th>Automation</th><th>Trigger</th></tr></thead>
+    <tbody>
+      <tr><td>AU-19</td><td>Weekly email digest</td><td>Queries revenue, spending, overdue invoices, upcoming obligations, infra alerts, and runway. Email excludes transaction detail and sensitive balances by default.</td></tr>
+      <tr><td>AU-20</td><td>Smart notifications</td><td>Generate alerts for overdue invoices, infra threshold ≥80%, spending spikes, runway below threshold, bill changes, tax-reserve gaps, and overlapping deliverable deadlines.</td></tr>
+      <tr><td>AU-21</td><td>Monthly P&amp;L auto-generation</td><td>pg_cron on the 1st of each month. Generates previous month's P&amp;L (all income − business expenses = net business income; total income − total personal = net surplus/deficit). Stores as a monthly_reports record. Accessible as PDF on demand.</td></tr>
+      <tr><td>AU-22</td><td>Optional infrastructure health check</td><td>Post-MVP scheduled job writes usage to a separate Infrastructure page. The financial dashboard receives only an exception notification when immediate action is required.</td></tr>
+      <tr><td>AU-23</td><td>Independent encrypted backup</td><td>A scheduled external runner performs a logical database backup and Storage manifest, encrypts it, and copies it outside the primary Supabase project. Restore is tested quarterly.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Automation maturity timeline</h3>
+  <div class="callout callout-cyan">
+    <strong>Week 1:</strong> Everything is manual. You type expenses, enter income, create invoices by hand. ~30 min/week.<br>
+    <strong>Week 4:</strong> CSV smart import is working. Recurring bills auto-generate. Tax and burn rate recalculate automatically. ~15 min/week (one CSV upload + review).<br>
+    <strong>Week 8:</strong> Smart categorization has learned recurring vendors. Invoice templates and exception notifications reduce repetitive work. ~5–10 min/week for import and review.<br>
+    <strong>Week 12:</strong> Weekly digest and monthly reports focus on finances and exceptions. Optional operational monitoring remains separate. ~5–10 min/week steady state.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 11: PROCESS FLOWS -->
+<!-- =========================================== -->
+<div class="section" id="s11">
+  <div class="section-label">11 — process flows</div>
+  <h2>Core Process Flows</h2>
+
+  <h3>Flow 1 — Invoice lifecycle → revenue recognition → tax update</h3>
+  <div class="arch-container">
+    <svg viewBox="0 0 920 140" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs>
+        <marker id="fa" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#58a6ff"/></marker>
+      </defs>
+      <rect x="10" y="30" width="115" height="55" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="67" y="52" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Create Invoice</text>
+      <text x="67" y="68" text-anchor="middle" font-size="9" fill="#8b949e">from template or line items</text>
+
+      <rect x="155" y="30" width="115" height="55" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="212" y="52" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Generate PDF</text>
+      <text x="212" y="68" text-anchor="middle" font-size="9" fill="#8b949e">Edge Function</text>
+
+      <rect x="300" y="30" width="115" height="55" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="357" y="52" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Mark Sent</text>
+      <text x="357" y="68" text-anchor="middle" font-size="9" fill="#8b949e">status → SENT</text>
+
+      <rect x="445" y="30" width="115" height="55" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="502" y="52" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Aging Monitor</text>
+      <text x="502" y="68" text-anchor="middle" font-size="9" fill="#8b949e">15 / 30 / 60 day</text>
+
+      <rect x="590" y="30" width="115" height="55" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="647" y="52" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Mark Paid</text>
+      <text x="647" y="68" text-anchor="middle" font-size="9" fill="#8b949e">status → PAID</text>
+
+      <rect x="735" y="20" width="115" height="36" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="792" y="43" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">→ income_record</text>
+
+      <rect x="735" y="63" width="115" height="36" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="792" y="86" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">→ recalc tax est.</text>
+
+      <rect x="735" y="106" width="115" height="28" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="792" y="125" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">→ update P&L</text>
+
+      <line x1="125" y1="57" x2="155" y2="57" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#fa)"/>
+      <line x1="270" y1="57" x2="300" y2="57" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#fa)"/>
+      <line x1="415" y1="57" x2="445" y2="57" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#fa)"/>
+      <line x1="560" y1="57" x2="590" y2="57" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#fa)"/>
+      <line x1="705" y1="42" x2="735" y2="38" stroke="#bc8cff" stroke-width="1" marker-end="url(#fa)"/>
+      <line x1="705" y1="57" x2="735" y2="75" stroke="#bc8cff" stroke-width="1" marker-end="url(#fa)"/>
+      <line x1="705" y1="70" x2="735" y2="112" stroke="#bc8cff" stroke-width="1" marker-end="url(#fa)"/>
+
+      <!-- Overdue branch -->
+      <path d="M502,85 L502,115 L357,115 L357,85" fill="none" stroke="#f85149" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#fa)"/>
+      <text x="430" y="110" text-anchor="middle" font-size="8" fill="#f85149">overdue → resend</text>
+    </svg>
+  </div>
+
+  <h3>Flow 2 — Daily infrastructure sync (cron)</h3>
+  <div class="arch-container">
+    <svg viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs><marker id="fb" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#d29922"/></marker></defs>
+      <rect x="10" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="80" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">pg_cron fires</text>
+      <text x="80" y="62" text-anchor="middle" font-size="9" fill="#8b949e">6:00 AM daily</text>
+
+      <rect x="180" y="25" width="155" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="257" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Pull Supabase usage</text>
+      <text x="257" y="62" text-anchor="middle" font-size="9" fill="#8b949e">per project (Mgmt API)</text>
+
+      <rect x="365" y="25" width="155" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="442" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Pull CF analytics</text>
+      <text x="442" y="62" text-anchor="middle" font-size="9" fill="#8b949e">workers + pages (GraphQL)</text>
+
+      <rect x="550" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="620" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">→ infra_metrics</text>
+      <text x="620" y="62" text-anchor="middle" font-size="9" fill="#8b949e">write to Postgres</text>
+
+      <rect x="720" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#f85149" stroke-width="1.5"/>
+      <text x="790" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Threshold check</text>
+      <text x="790" y="62" text-anchor="middle" font-size="9" fill="#8b949e">≥80% → notification</text>
+
+      <line x1="150" y1="50" x2="180" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fb)"/>
+      <line x1="335" y1="50" x2="365" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fb)"/>
+      <line x1="520" y1="50" x2="550" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fb)"/>
+      <line x1="690" y1="50" x2="720" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fb)"/>
+    </svg>
+  </div>
+
+  <h3>Flow 3 — Import → review → reliable reporting</h3>
+  <div class="arch-container">
+    <svg viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs><marker id="fc" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3fb950"/></marker></defs>
+      <rect x="10" y="25" width="130" height="50" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="75" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Select CSV</text>
+      <text x="75" y="62" text-anchor="middle" font-size="9" fill="#8b949e">client-side parsing</text>
+
+      <rect x="170" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="240" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Preview &amp; Clean</text>
+      <text x="240" y="62" text-anchor="middle" font-size="9" fill="#8b949e">strip prohibited fields</text>
+
+      <rect x="340" y="25" width="155" height="50" rx="6" fill="#1c2230" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="417" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Detect Duplicates</text>
+      <text x="417" y="62" text-anchor="middle" font-size="9" fill="#8b949e">fingerprint + transfers</text>
+
+      <rect x="525" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="595" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Review &amp; Confirm</text>
+      <text x="595" y="62" text-anchor="middle" font-size="9" fill="#8b949e">personal / business</text>
+
+      <rect x="695" y="25" width="155" height="50" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="772" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Update Scorecard</text>
+      <text x="772" y="62" text-anchor="middle" font-size="9" fill="#8b949e">traceable metrics</text>
+
+      <line x1="140" y1="50" x2="170" y2="50" stroke="#3fb950" stroke-width="1.2" marker-end="url(#fc)"/>
+      <line x1="310" y1="50" x2="340" y2="50" stroke="#3fb950" stroke-width="1.2" marker-end="url(#fc)"/>
+      <line x1="495" y1="50" x2="525" y2="50" stroke="#3fb950" stroke-width="1.2" marker-end="url(#fc)"/>
+      <line x1="665" y1="50" x2="695" y2="50" stroke="#3fb950" stroke-width="1.2" marker-end="url(#fc)"/>
+    </svg>
+  </div>
+
+  <h3>Flow 4 — Personal expense → burn rate → runway</h3>
+  <div class="arch-container">
+    <svg viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs><marker id="fe" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#d29922"/></marker></defs>
+      <rect x="10" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="80" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Log Expense</text>
+      <text x="80" y="62" text-anchor="middle" font-size="9" fill="#8b949e">or CSV import</text>
+
+      <rect x="180" y="25" width="145" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="252" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Route: personal</text>
+      <text x="252" y="62" text-anchor="middle" font-size="9" fill="#8b949e">or business table</text>
+
+      <rect x="355" y="25" width="145" height="50" rx="6" fill="#1c2230" stroke="#d29922" stroke-width="1.5"/>
+      <text x="427" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Tag: need / want</text>
+      <text x="427" y="62" text-anchor="middle" font-size="9" fill="#8b949e">auto from category</text>
+
+      <rect x="530" y="25" width="145" height="50" rx="6" fill="#1c2230" stroke="#bc8cff" stroke-width="1.5"/>
+      <text x="602" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Recalc burn rate</text>
+      <text x="602" y="62" text-anchor="middle" font-size="9" fill="#8b949e">fixed + 3-mo avg variable</text>
+
+      <rect x="705" y="25" width="155" height="50" rx="6" fill="#1c2230" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="782" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Update runway</text>
+      <text x="782" y="62" text-anchor="middle" font-size="9" fill="#8b949e">savings ÷ burn rate</text>
+
+      <line x1="150" y1="50" x2="180" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fe)"/>
+      <line x1="325" y1="50" x2="355" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fe)"/>
+      <line x1="500" y1="50" x2="530" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fe)"/>
+      <line x1="675" y1="50" x2="705" y2="50" stroke="#d29922" stroke-width="1.2" marker-end="url(#fe)"/>
+    </svg>
+  </div>
+
+  <h3>Flow 5 — Weekly email digest</h3>
+  <div class="arch-container">
+    <svg viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+      <defs><marker id="fd" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#39d2c0"/></marker></defs>
+      <rect x="10" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="80" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">pg_cron fires</text>
+      <text x="80" y="62" text-anchor="middle" font-size="9" fill="#8b949e">Mon 7 AM ET</text>
+
+      <rect x="180" y="25" width="160" height="50" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="260" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Query last 7 days</text>
+      <text x="260" y="62" text-anchor="middle" font-size="9" fill="#8b949e">revenue, spend, AR, alerts</text>
+
+      <rect x="370" y="25" width="160" height="50" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="450" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Build HTML email</text>
+      <text x="450" y="62" text-anchor="middle" font-size="9" fill="#8b949e">scorecard + action items</text>
+
+      <rect x="560" y="25" width="160" height="50" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="640" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Send via Resend</text>
+      <text x="640" y="62" text-anchor="middle" font-size="9" fill="#8b949e">API call (free tier)</text>
+
+      <rect x="750" y="25" width="140" height="50" rx="6" fill="#1c2230" stroke="#39d2c0" stroke-width="1.5"/>
+      <text x="820" y="46" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">Inbox</text>
+      <text x="820" y="62" text-anchor="middle" font-size="9" fill="#8b949e">review before planning</text>
+
+      <line x1="150" y1="50" x2="180" y2="50" stroke="#39d2c0" stroke-width="1.2" marker-end="url(#fd)"/>
+      <line x1="340" y1="50" x2="370" y2="50" stroke="#39d2c0" stroke-width="1.2" marker-end="url(#fd)"/>
+      <line x1="530" y1="50" x2="560" y2="50" stroke="#39d2c0" stroke-width="1.2" marker-end="url(#fd)"/>
+      <line x1="720" y1="50" x2="750" y2="50" stroke="#39d2c0" stroke-width="1.2" marker-end="url(#fd)"/>
+    </svg>
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 10: SECURITY & BACKUP -->
+<!-- =========================================== -->
+<div class="section" id="s12">
+  <div class="section-label">12 — security &amp; backup</div>
+  <h2>Security &amp; Backup Model</h2>
+
+  <h3>Authentication &amp; access</h3>
+  <table class="req-table">
+    <thead><tr><th>Layer</th><th>Control</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td>Auth</td><td>Supabase Auth — email/password + TOTP 2FA</td><td>Single user. 2FA mandatory because this stores financial data and API keys.</td></tr>
+      <tr><td>RLS</td><td>All tables: WHERE user_id = auth.uid()</td><td>Even if the Supabase URL leaks, no data is accessible without a valid JWT.</td></tr>
+      <tr><td>API Keys</td><td>Stored in Supabase Vault (encrypted at rest)</td><td>CF API token, Supabase Management API key, Resend API key — never in code or env vars in the repo.</td></tr>
+      <tr><td>Frontend</td><td>Cloudflare Pages — HTTPS only, no server-side rendering</td><td>No secrets in the frontend build. All sensitive operations go through Edge Functions.</td></tr>
+      <tr><td>CORS</td><td>Supabase CORS restricted to your Pages domain</td><td>Prevents any other origin from calling your Supabase endpoints.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Backup strategy</h3>
+  <table class="req-table">
+    <thead><tr><th>What</th><th>Method</th><th>Frequency</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Database</td><td>Logical backup from a scheduled external runner</td><td>Weekly minimum</td><td>Free-tier capable</td></tr>
+      <tr><td>Independent copy</td><td>Encrypted backup stored outside the primary Supabase project</td><td>After each backup</td><td>Provider-dependent</td></tr>
+      <tr><td>Receipts / PDFs</td><td>Supabase Storage (object storage with CDN)</td><td>On upload</td><td>Free (within 1 GB)</td></tr>
+      <tr><td>Code</td><td>GitHub (private repo)</td><td>On every push</td><td>Free</td></tr>
+      <tr><td>Offline export</td><td>Manual full-export button in UI → downloads JSON/CSV zip</td><td>On demand</td><td>Free</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-red">
+    <strong>Critical:</strong> a backup inside the same Supabase project is not independent disaster recovery. Keep an encrypted copy outside the primary project, include Storage objects or a recoverable manifest, document restoration steps, and perform a quarterly restore test.
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 11: PHASED ROLLOUT -->
+<!-- =========================================== -->
+<div class="section" id="s13">
+  <div class="section-label">13 — phased rollout</div>
+  <h2>Phased Rollout</h2>
+
+  <div class="phase-timeline">
+    <div class="phase">
+      <div class="phase-marker p1">P1</div>
+      <div class="phase-content">
+        <h4>MVP Foundation — Reliable Financial Visibility</h4>
+        <div class="phase-duration">Weeks 1–6 · Deliverable: trustworthy import, ledger, and weekly scorecard</div>
+        <ul>
+          <li>Core schema: financial_accounts (labels only), transactions, import_batches, transaction_sources, clients, invoices, payments, expenses, income_records, recurring_bills, audit_events, and RLS policies</li>
+          <li>Supabase Auth with email/password + TOTP 2FA</li>
+          <li>React app (Vite + Tailwind) deployed to Cloudflare Pages</li>
+          <li>Manual income entry: W-2 paystub (gross + net) and consulting payments</li>
+          <li>Recurring bills setup: mortgage, car, insurance, utilities, subscriptions — with due dates and amounts</li>
+          <li>Personal expense entry with category dropdown (groceries, dining, gas, etc.) and need/want tagging</li>
+          <li>Business expense entry with category dropdown; receipt retention is optional and private</li>
+          <li>Monthly personal burn rate calculation (fixed + rolling 3-month variable average)</li>
+          <li>Invoice CRUD with status lifecycle (draft → sent → paid → overdue)</li>
+          <li>Invoice PDF generation (Edge Function)</li>
+          <li>Combined cash flow waterfall: all income vs. personal outflow + business outflow vs. net (Recharts)</li>
+          <li>CSV smart import for one bank and one card format, with preview, rollback, transfer handling, prohibited-field stripping, and duplicate detection</li>
+          <li>Quick capture FAB: Log Time, Add Expense, Create Invoice — one-tap from anywhere (BR-D04)</li>
+          <li>Smart categorization engine: category_rules + vendor_rules tables, self-learning from corrections, review queue with batch confirm (BR-D08–D12)</li>
+          <li>Recurring bill auto-generation: expected expenses created on 1st of month, confirmed when CSV/receipt matches (BR-D05, AU-06, AU-07)</li>
+          <li>Basic tax reserve planner, clearly labeled as an estimate; detailed tax modeling moves to P3</li>
+          <li>Independent encrypted backup and successful restore test before production financial data is entered</li>
+          <li>Payment → revenue cascade: invoice marked paid auto-creates income record, recalcs tax, updates cash flow (AU-17)</li>
+          <li>Financial runway: liquid savings ÷ personal burn rate</li>
+          <li>Weekly financial scorecard as landing page: usable cash, obligations, spending, income sources, runway, receivables, and savings/tax reserve progress</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-marker p2">P2</div>
+      <div class="phase-content">
+        <h4>Visibility — Clients, Time, Infra, Notifications</h4>
+        <div class="phase-duration">Weeks 4–6 · Deliverable: full operational visibility</div>
+        <ul>
+          <li>Client management views with contract type, value, delivery status, revenue, direct expenses, and cash margin</li>
+          <li>Proposal pipeline tracker (draft → sent → won → lost)</li>
+          <li>Supabase Management API + Cloudflare Analytics API integrations (daily cron)</li>
+          <li>Optional Infrastructure page with free-tier headroom gauges; excluded from the main dashboard</li>
+          <li>In-app notification center (overdue invoices, threshold alerts, deadlines)</li>
+          <li>Weekly email digest via Resend (Monday 7 AM)</li>
+          <li>PDF statement parser: pdf.js text extraction + Tesseract.js OCR for scanned statements (BR-D03)</li>
+          <li>Voice / dictation capture on quick-entry form via Web Speech API (BR-D07)</li>
+          <li>Supabase Realtime subscriptions for live dashboard sync</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-marker p3">P3</div>
+      <div class="phase-content">
+        <h4>Intelligence — Tax Prep, Personal Insights, Analytics Foundation</h4>
+        <div class="phase-duration">Weeks 7–9 · Deliverable: proactive insights + first recommendations</div>
+        <ul>
+          <li>Tax set-aside tracker and tax optimization gap alerts (BR-A05)</li>
+          <li>Year-end tax summary generator (PDF export with categorized deductions)</li>
+          <li>1099-ready per-client annual summary</li>
+          <li>50/30/20 budget tracker with drift alerts (BR-A06)</li>
+          <li>Personal spending trend with 3-month rolling averages and spike alerts (BR-A01)</li>
+          <li>Income vs. expense ratio tracking (BR-A02)</li>
+          <li>Cash flow forecast — 3 months forward (BR-A03)</li>
+          <li>Revenue concentration risk analysis (BR-A09)</li>
+          <li>Client direct-cost and cash-margin trends (BR-A08)</li>
+          <li>Insight cards on dashboard — top 3 recommendations, ranked by urgency (BR-A16)</li>
+          <li>Recommendations table + weekly digest integration (BR-A17, BR-A18)</li>
+          <li>Email bill forwarding: Cloudflare Email Routing → Worker → parse → Supabase (BR-D06)</li>
+          <li>Uptime monitoring (Edge Function pings client sites every 15 min)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-marker p4">P4</div>
+      <div class="phase-content">
+        <h4>Optimization — Full Analytics Engine, Profitability, Retrospectives</h4>
+        <div class="phase-duration">Weeks 10–12 · Deliverable: strategic decision support</div>
+        <ul>
+          <li>Client cash-margin ranking with supporting transaction drill-down (BR-A07)</li>
+          <li>Receivables-pressure analysis (BR-A11)</li>
+          <li>Delivery-risk view based on deadlines and milestone status (BR-A14)</li>
+          <li>Rate raise timing analysis (BR-A13)</li>
+          <li>Pipeline conversion analysis with aging alerts (BR-A10)</li>
+          <li>Burn rate trajectory with runway projection (BR-A04, BR-A12)</li>
+          <li>Configurable thresholds for all alert triggers (BR-A19)</li>
+          <li>monthly_snapshots table for historical trend analysis</li>
+          <li>Engagement health score (payment timeliness, scope creep, communication frequency)</li>
+          <li>Engagement retrospective log (per-client: what worked, what didn't, would you re-engage)</li>
+          <li>Contract / document vault with expiration alerts (Supabase Storage)</li>
+          <li>Annual business review auto-generator (PDF)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-marker p5">P5</div>
+      <div class="phase-content">
+        <h4>Growth — SaaS Tracking &amp; Productization</h4>
+        <div class="phase-duration">Weeks 13–16 · Deliverable: SaaS readiness</div>
+        <ul>
+          <li>SaaS productization milestone tracker (Revenue Intelligence Engine)</li>
+          <li>MRR / ARR tracker for product revenue</li>
+          <li>Seasonal spending forecast — detect patterns after 12+ months of data (BR-A15)</li>
+          <li>Debt payoff projections (minimum payment timeline vs. accelerated)</li>
+          <li>Net worth snapshot: assets − liabilities with monthly trend</li>
+          <li>Full database export (JSON + CSV zip on demand)</li>
+          <li>Automated independent encrypted backup with quarterly restore test</li>
+          <li>PWA manifest for mobile home screen install</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- =========================================== -->
+<!-- SECTION 12: RISK REGISTER -->
+<!-- =========================================== -->
+<div class="section" id="s14">
+  <div class="section-label">14 — risk register</div>
+  <h2>Risk Register</h2>
+
+  <table class="req-table">
+    <thead><tr><th>Risk</th><th>Impact</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Supabase</td>
+        <td>Supabase changes or removes free tier</td>
+        <td><span class="priority-low">Low</span></td>
+        <td>Independent encrypted logical backups plus documented migration steps. Standard Postgres tables remain portable; Auth, Storage, functions, extensions, and configuration require separate recovery procedures.</td>
+      </tr>
+      <tr>
+        <td>Cloudflare</td>
+        <td>Cloudflare Pages free tier changes</td>
+        <td><span class="priority-low">Low</span></td>
+        <td>React SPA is a static build. Deployable to Vercel, Netlify, or GitHub Pages in &lt;5 minutes.</td>
+      </tr>
+      <tr>
+        <td>Tax calc</td>
+        <td>SE tax or bracket formula is wrong, leading to underpayment</td>
+        <td><span class="priority-med">Medium</span></td>
+        <td>Unit tests for the tax function against IRS-published examples. Display "estimated — not tax advice" disclaimer. Cross-check with IRS quarterly worksheet (Form 1040-ES) annually.</td>
+      </tr>
+      <tr>
+        <td>Data loss</td>
+        <td>Accidental deletion or Supabase outage loses financial records</td>
+        <td><span class="priority-low">Low</span></td>
+        <td>Soft deletes, on-demand export, independent encrypted backups, Storage recovery plan, and quarterly restore testing.</td>
+      </tr>
+      <tr>
+        <td>Scope creep</td>
+        <td>Building features nobody asked for instead of shipping P1</td>
+        <td><span class="priority-high">High</span></td>
+        <td>Phase 1 is intentionally scoped to 3 weeks. Ship the scorecard + P&L + invoicing first. Everything after Phase 1 is a "nice to have" until Phase 1 is in daily use.</td>
+      </tr>
+      <tr>
+        <td>Time</td>
+        <td>Side project competes with paid consulting work and expands beyond validated needs</td>
+        <td><span class="priority-high">High</span></td>
+        <td>Use a fixed weekly build budget and phase gates. Do not begin the next phase until the current workflow is used successfully for four weeks.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-purple">
+    <strong>Meta-recommendation:</strong> Treat every phase as optional until the previous one proves useful in real weekly use. The command center should reduce decision friction, not become a second business to maintain.
+  </div>
+</div>
+
+</div>
+</body>
+</html>
