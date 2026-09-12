@@ -24,3 +24,8 @@ assert.equal(parseDocument('Shop\nSubtotal $40.00\nTax $3.00\nGrand Total\n43.00
 assert.equal(parseDocument('Shop\nTotal $43.00\nTotal $44.00','Checking','Personal')[0].amount,'');
 assert.equal(parseDocument('Area 51.27\n56.4 Sq. Ft.','Checking','Personal')[0].amount,'');
 console.log('Passed document single draft, product price, excluded promotions and measurements, total priority and ambiguity.');
+
+assert.equal(parseCapture('income 5000 for webservice for client XYZ','2026-09-12','Checking','Business')[0].amount,'5000');
+assert.equal(parseCapture('Paid 85 groceries on 2026-09-12','2026-09-12','Checking','Personal')[0].amount,'85');
+assert.equal(parseCapture('Paid 20 and 30','2026-09-12','Checking','Personal')[0].include,false);
+console.log('Passed bare-cost income/expense, date exclusion and multiple-number ambiguity.');
