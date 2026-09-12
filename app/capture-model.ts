@@ -1,4 +1,25 @@
 import {billOccurrence,csvRows,fingerprint,active,incomeKinds,uid,type State,type Transaction} from './model';
+// Uploaded documents are one purchase candidate, never one transaction per OCR line.
+export function parseDocument(text:string,account:string,scope:string):CaptureDraft[]{
+ const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+ const shopping=/add to cart|order samples|qualifying first order/i.test(text);
+ const totals:string[]=[];const prices:string[]=[];
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i];
+  if(/subtotal|sub total|savings|discount|\boff\b|orders over|qualifying|shipping|cash tendered|change due/i.test(line))continue;
+  const total=line.match(/\b(?:grand total|order total|total paid|amount paid|amount due|balance due|total)\s*[:$\s]*([\d,]+\.\d{2})(?!\d)/i)
+   || (/^(?:grand total|order total|total paid|amount paid|amount due|balance due|total)\s*:?$/i.test(line)?lines[i+1]?.match(/^\$?\s*([\d,]+\.\d{2})$/):null);
+  if(total)totals.push(total[1].replace(/,/g,''));
+  for(const m of line.matchAll(/\$\s*([\d,]+\.\d{2})(?!\d)/g))prices.push(m[1].replace(/,/g,''));
+ }
+ const candidates=[...new Set(totals.length?totals:prices)];
+ const amount=candidates.length===1?candidates[0]:'';
+ let date=text.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0]||'';
+ if(!date){const raw=text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/)?.[0];if(raw)try{date=parseDate(raw)}catch{}}
+ if(!validDate(date)||shopping)date='';
+ const vendor=shopping?'':lines.find(x=>/[a-z]{3}/i.test(x)&&!/^\d|receipt|total/i.test(x))?.slice(0,140)||'';
+ return [{id:uid(),date,vendor,amount,kind:scope==='Business'?'Business':'Need',category:'Other',account,scope,type:'Transaction',include:false,warning:[shopping?'Product screenshot, not proof of payment. Confirm purchase, merchant and actual paid total before recording.':'Document draft: verify merchant, total and purchase date.',candidates.length>1?'Multiple possible totals: enter the correct amount.':!amount?'No reliable price found: enter the amount.':!totals.length?'Price detected; tax or shipping may be excluded.':'','Select Include draft only after review.'].filter(Boolean).join(' ')}];
+}
 export type CaptureDraft={id:string,date:string,vendor:string,amount:string,kind:string,category:string,account:string,scope:string,type:string,include:boolean,warning:string};
 export function validDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!isNaN(Date.parse(value))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;}
 export function addDays(date:string,n:number){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
