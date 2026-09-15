@@ -3,22 +3,25 @@ import {billOccurrence,csvRows,fingerprint,active,incomeKinds,uid,type State,typ
 export function parseDocument(text:string,account:string,scope:string):CaptureDraft[]{
  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
  const shopping=/add to cart|order samples|qualifying first order/i.test(text);
- const totals:string[]=[];const prices:string[]=[];
+ const totals:string[]=[];const prices:string[]=[];const charged:string[]=[];
  for(let i=0;i<lines.length;i++){
   const line=lines[i];
+  if(/total charged/i.test(line)){const m=(line+' '+(lines[i+1]||'')).match(/total charged[^$\n]*\$\s*([\d,]+\.\d{2})/i);if(m)charged.push(m[1].replace(/,/g,''));}
+
   if(/subtotal|sub total|savings|discount|\boff\b|orders over|qualifying|shipping|cash tendered|change due/i.test(line))continue;
   const total=line.match(/\b(?:grand total|order total|total paid|amount paid|amount due|balance due|total)\s*[:$\s]*([\d,]+\.\d{2})(?!\d)/i)
    || (/^(?:grand total|order total|total paid|amount paid|amount due|balance due|total)\s*:?$/i.test(line)?lines[i+1]?.match(/^\$?\s*([\d,]+\.\d{2})$/):null);
   if(total)totals.push(total[1].replace(/,/g,''));
   for(const m of line.matchAll(/\$\s*([\d,]+\.\d{2})(?!\d)/g))prices.push(m[1].replace(/,/g,''));
  }
- const candidates=[...new Set(totals.length?totals:prices)];
+ const candidates=[...new Set(charged.length?charged:totals.length?totals:prices)];
  const amount=candidates.length===1?candidates[0]:'';
  let date=text.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0]||'';
  if(!date){const raw=text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/)?.[0];if(raw)try{date=parseDate(raw)}catch{}}
+ if(!date){const months=['January','February','March','April','May','June','July','August','September','October','November','December'];const m=text.match(/(?:Sent\s+)?\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:,\s*|\s+)(\d{4})/i);if(m)date=m[3]+'-'+String(months.findIndex(x=>x.toLowerCase()===m[1].toLowerCase())+1).padStart(2,'0')+'-'+m[2].padStart(2,'0');}
  if(!validDate(date)||shopping)date='';
  const vendor=shopping?'':lines.find(x=>/[a-z]{3}/i.test(x)&&!/^\d|receipt|total/i.test(x))?.slice(0,140)||'';
- return [{id:uid(),date,vendor,amount,kind:scope==='Business'?'Business':'Need',category:'Other',account,scope,type:'Transaction',include:false,warning:[shopping?'Product screenshot, not proof of payment. Confirm purchase, merchant and actual paid total before recording.':'Document draft: verify merchant, total and purchase date.',candidates.length>1?'Multiple possible totals: enter the correct amount.':!amount?'No reliable price found: enter the amount.':!totals.length?'Price detected; tax or shipping may be excluded.':'','Select Include draft only after review.'].filter(Boolean).join(' ')}];
+ return [{id:uid(),date,vendor,amount,kind:scope==='Business'?'Business':'Need',category:'Other',account,scope,type:'Transaction',include:false,warning:[shopping?'Product screenshot, not proof of payment. Confirm purchase, merchant and actual paid total before recording.':'Document draft: verify merchant, total and purchase date.',candidates.length>1?'Multiple possible totals: enter the correct amount.':!amount?'No reliable price found: enter the amount.':!totals.length?'Price detected; tax or shipping may be excluded.':'',charged.length?'Total charged includes the transfer fee. Review whether this is money sent to someone else or a transfer between your own accounts.':'','Select Include draft only after review.'].filter(Boolean).join(' ')}];
 }
 export type CaptureDraft={currency?:string,id:string,date:string,vendor:string,amount:string,kind:string,category:string,account:string,scope:string,type:string,include:boolean,warning:string};
 export function validDate(value:string){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!isNaN(Date.parse(value))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;}

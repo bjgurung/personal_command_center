@@ -29,3 +29,5 @@ assert.equal(parseCapture('income 5000 for webservice for client XYZ','2026-09-1
 assert.equal(parseCapture('Paid 85 groceries on 2026-09-12','2026-09-12','Checking','Personal')[0].amount,'85');
 assert.equal(parseCapture('Paid 20 and 30','2026-09-12','Checking','Personal')[0].include,false);
 console.log('Passed bare-cost income/expense, date exclusion and multiple-number ambiguity.');
+
+const transfer=parseDocument('Recipient Name\nTransfer amount $200.00\nTransfer fee $1.99\nTotal charged (Visa ...1234) $201.99\nTotal to recipient NPR 30,200.00\nSent September 11,2026 7:46 AM','Checking','Personal')[0];assert.equal(transfer.amount,'201.99');assert.equal(transfer.date,'2026-09-11');assert.equal(transfer.include,false);console.log('PASS remittance charged-total priority and named-month date');
