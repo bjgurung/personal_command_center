@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,readFileSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';import {join} from 'node:path';import {pathToFileURL} from 'node:url';import ts from 'typescript';
+const dir=mkdtempSync(join(tmpdir(),'pcc-ai-'));writeFileSync(join(dir,'package.json'),'{"type":"module"}');
+for(const name of ['model','capture-model','ai-capture'])writeFileSync(join(dir,name+'.js'),ts.transpileModule(readFileSync('app/'+name+'.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText.replaceAll("'./model'","'./model.js'").replaceAll("'./capture-model'","'./capture-model.js'"));
+const {aiDraft}=await import(pathToFileURL(join(dir,'ai-capture.js')));
+const raw={merchant:'Test shop',date:'2026-09-14',amount:'43.00',currency:'USD',subtotal:'40.00',tax:'3.00',tip:'0',warning:'',documentType:'receipt'};
+assert.equal(aiDraft(raw,'Checking','Personal')[0].amount,'43.00');assert.equal(aiDraft(raw,'Checking','Personal')[0].include,false);
+assert.equal(aiDraft({...raw,currency:'EUR'},'Checking','Personal')[0].amount,'');assert.equal(aiDraft({...raw,date:'2026-02-31'},'Checking','Personal')[0].date,'');assert.match(aiDraft({...raw,amount:'45'},'Checking','Personal')[0].warning,/do not match/);
+const code=readFileSync('app/api/capture/route.ts','utf8').replace("import { env } from 'cloudflare:workers';","const env={GEMINI_API_KEY:'fake-test-key'};");writeFileSync(join(dir,'route.js'),ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText);
+const {POST}=await import(pathToFileURL(join(dir,'route.js')));let calls=0;
+const request=(token=true)=>{const body=new FormData();body.append('file',new File(['test'],'receipt.png',{type:'image/png'}));return new Request('https://example.com/api/capture',{method:'POST',headers:token?{Authorization:'Bearer test'}:{},body});};
+assert.equal((await POST(request(false))).status,401);
+global.fetch=async()=>{calls++;return Response.json({}, {status:401})};assert.equal((await POST(request())).status,401);assert.equal(calls,1);
+global.fetch=async url=>String(url).includes('/auth/')?Response.json({id:'test'}):Response.json({candidates:[{content:{parts:[{text:JSON.stringify(raw)}]}}]});assert.equal((await (await POST(request())).json()).draft.amount,'43.00');
+global.fetch=async url=>String(url).includes('/auth/')?Response.json({id:'test'}):Response.json({}, {status:429});assert.equal((await POST(request())).status,429);
+global.fetch=async url=>String(url).includes('/auth/')?Response.json({id:'test'}):Response.json({candidates:[{content:{parts:[{text:'{"amount":43}'}]}}]});assert.equal((await POST(request())).status,502);
+console.log('PASS AI draft validation, currency/date/arithmetic checks, auth rejection, extraction response, quota and malformed-output handling');
