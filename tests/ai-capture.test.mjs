@@ -16,3 +16,8 @@ global.fetch=async url=>String(url).includes('/auth/')?Response.json({id:'test'}
 global.fetch=async url=>String(url).includes('/auth/')?Response.json({id:'test'}):Response.json({}, {status:429});assert.equal((await POST(request())).status,429);
 global.fetch=async url=>String(url).includes('/auth/')?Response.json({id:'test'}):Response.json({candidates:[{content:{parts:[{text:'{"amount":43}'}]}}]});assert.equal((await POST(request())).status,502);
 console.log('PASS AI draft validation, currency/date/arithmetic checks, auth rejection, extraction response, quota and malformed-output handling');
+
+assert.equal(aiDraft({...raw,amount:'$1,234.50',currency:' usd '},'Checking','Personal')[0].amount,'1234.50');
+const unknown=aiDraft({...raw,currency:''},'Checking','Personal')[0];assert.equal(unknown.amount,'43.00');assert.equal(unknown.currency,'Unknown');
+const {draftTransaction}=await import(pathToFileURL(join(dir,'capture-model.js')));assert.throws(()=>draftTransaction(unknown),/Confirm USD/);assert.equal(draftTransaction({...unknown,currency:'USD'}).amount,4300);
+console.log('PASS formatted amount, normalized currency, unknown-currency prefill and confirmation guard');
